@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LinkChat</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #0f172a;
+    color: white;
+    height: 100vh;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+#login {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.login-box {
+    width: 100%;
+    max-width: 430px;
+    background: #1e293b;
+    padding: 35px;
+    border-radius: 18px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #94a3b8;
+    margin-bottom: 30px;
+}
+
+label {
+    display: block;
+    margin-top: 18px;
+    margin-bottom: 7px;
+    color: #cbd5e1;
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #475569;
+    border-radius: 10px;
+    background: #0f172a;
+    color: white;
+    outline: none;
+}
+
+input:focus {
+    border-color: #60a5fa;
+}
+
+button {
+    border: 0;
+    border-radius: 10px;
+    padding: 13px 18px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#joinButton {
+    width: 100%;
+    margin-top: 25px;
+    background: #3b82f6;
+    color: white;
+}
+
+#joinButton:hover {
+    background: #2563eb;
+}
+
+#chat {
+    display: none;
+    height: 100vh;
+    flex-direction: column;
+}
+
+header {
+    height: 70px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-title {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.online {
+    color: #4ade80;
+    font-size: 13px;
+}
+
+#copyButton {
+    background: #334155;
+    color: white;
+}
+
+#copyButton:hover {
+    background: #475569;
+}
+
+#messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.message {
+    max-width: 75%;
+    background: #1e293b;
+    padding: 10px 14px;
+    border-radius: 14px;
+    align-self: flex-start;
+}
+
+.message.mine {
+    background: #2563eb;
+    align-self: flex-end;
+}
+
+.name {
+    font-size: 12px;
+    color: #93c5fd;
+    margin-bottom: 4px;
+    font-weight: bold;
+}
+
+.mine .name {
+    color: #dbeafe;
+}
+
+.message-text {
+    word-wrap: break-word;
+    white-space: pre-wrap;
+}
+
+.system {
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+    margin: 5px;
+}
+
+#composer {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    background: #1e293b;
+    border-top: 1px solid #334155;
+}
+
+#messageInput {
+    flex: 1;
+}
+
+#sendButton {
+    background: #3b82f6;
+    color: white;
+}
+
+#sendButton:hover {
+    background: #2563eb;
+}
+
+@media (max-width: 600px) {
+    header {
+        padding: 0 12px;
+    }
+
+    .chat-title {
+        font-size: 16px;
+    }
+
+    #messages {
+        padding: 15px;
+    }
+
+    .message {
+        max-width: 88%;
+    }
+
+    #copyButton {
+        padding: 10px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+
+    <div class="login-box">
+
+        <div class="logo">💬 LinkChat</div>
+
+        <div class="subtitle">
+            Create a private chat room and share the link.
+        </div>
+
+        <label for="username">Your name</label>
+
+        <input
+            id="username"
+            maxlength="30"
+            placeholder="Enter your name"
+            autocomplete="off"
+        >
+
+        <label for="room">Room name</label>
+
+        <input
+            id="room"
+            maxlength="50"
+            placeholder="Example: friends"
+            autocomplete="off"
+        >
+
+        <button id="joinButton">
+            Join Chat
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- CHAT -->
+<div id="chat">
+
+    <header>
+
+        <div class="header-left">
+
+            <div>
+                <div class="chat-title">
+                    💬 <span id="roomTitle"></span>
+                </div>
+
+                <div class="online">
+                    ● <span id="userCount">0</span> online
+                </div>
+            </div>
+
+        </div>
+
+        <button id="copyButton">
+            🔗 Copy Link
+        </button>
+
+    </header>
+
+
+    <div id="messages"></div>
+
+
+    <div id="composer">
+
+        <input
+            id="messageInput"
+            maxlength="1000"
+            placeholder="Type a message..."
+            autocomplete="off"
+        >
+
+        <button id="sendButton">
+            Send
+        </button>
+
+    </div>
+
+</div>
+
+
+<script>
+const login = document.getElementById("login");
+const chat = document.getElementById("chat");
+
+const usernameInput = document.getElementById("username");
+const roomInput = document.getElementById("room");
+
+const joinButton = document.getElementById("joinButton");
+
+const messages = document.getElementById("messages");
+const messageInput = document.getElementById("messageInput");
+const sendButton = document.getElementById("sendButton");
+
+const roomTitle = document.getElementById("roomTitle");
+const userCount = document.getElementById("userCount");
+
+const copyButton = document.getElementById("copyButton");
+
+let socket = null;
+let username = "";
+let room = "";
+
+
+function getRoomFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("room") || "";
+}
+
+
+const urlRoom = getRoomFromURL();
+
+if (urlRoom) {
+    roomInput.value = urlRoom;
+}
+
+
+function addMessage(username, message, mine) {
+
+    const box = document.createElement("div");
+
+    box.className = "message";
+
+    if (mine) {
+        box.classList.add("mine");
+    }
+
+    const name = document.createElement("div");
+
+    name.className = "name";
+    name.textContent = username;
+
+    const text = document.createElement("div");
+
+    text.className = "message-text";
+    text.textContent = message;
+
+    box.appendChild(name);
+    box.appendChild(text);
+
+    messages.appendChild(box);
+
+    messages.scrollTop = messages.scrollHeight;
+}
+
+
+function addSystemMessage(message) {
+
+    const box = document.createElement("div");
+
+    box.className = "system";
+
+    box.textContent = message;
+
+    messages.appendChild(box);
+
+    messages.scrollTop = messages.scrollHeight;
+}
+
+
+function connect() {
+
+    const protocol =
+        location.protocol === "https:"
+            ? "wss:"
+            : "ws:";
+
+    socket = new WebSocket(
+        protocol + "//" + location.host
+    );
+
+
+    socket.addEventListener("open", () => {
+
+        socket.send(JSON.stringify({
+            type: "join",
+            username: username,
+            room: room
+        }));
+
+    });
+
+
+    socket.addEventListener("message", event => {
+
+        let data;
+
+        try {
+            data = JSON.parse(event.data);
+        } catch {
+            return;
+        }
+
+
+        if (data.type === "joined") {
+
+            roomTitle.textContent = data.room;
+
+            login.style.display = "none";
+            chat.style.display = "flex";
+
+            messageInput.focus();
+
+            return;
+        }
+
+
+        if (data.type === "message") {
+
+            addMessage(
+                data.username,
+                data.message,
+                data.username === username
+            );
+
+            return;
+        }
+
+
+        if (data.type === "system") {
+
+            addSystemMessage(data.message);
+
+            return;
+        }
+
+
+        if (data.type === "users") {
+
+            userCount.textContent = data.count;
+
+            return;
+        }
+
+
+        if (data.type === "error") {
+
+            alert(data.message);
+
+        }
+
+    });
+
+
+    socket.addEventListener("close", () => {
+
+        if (chat.style.display === "flex") {
+            addSystemMessage(
+                "Disconnected from the server. Refresh to reconnect."
+            );
+        }
+
+    });
+
+}
+
+
+function joinChat() {
+
+    username = usernameInput.value.trim();
+    room = roomInput.value.trim();
+
+    if (!username) {
+        alert("Please enter your name.");
+        usernameInput.focus();
+        return;
+    }
+
+    if (!room) {
+        alert("Please enter a room name.");
+        roomInput.focus();
+        return;
+    }
+
+
+    const newURL =
+        window.location.pathname +
+        "?room=" +
+        encodeURIComponent(room);
+
+    window.history.replaceState({}, "", newURL);
+
+    connect();
+}
+
+
+function sendMessage() {
+
+    const message = messageInput.value.trim();
+
+    if (!message) return;
+
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        alert("Not connected to the server.");
+        return;
+    }
+
+    socket.send(JSON.stringify({
+        type: "message",
+        message: message
+    }));
+
+    messageInput.value = "";
+    messageInput.focus();
+}
+
+
+joinButton.addEventListener("click", joinChat);
+
+sendButton.addEventListener("click", sendMessage);
+
+
+usernameInput.addEventListener("keydown", event => {
+
+    if (event.key === "Enter") {
+        joinChat();
+    }
+
+});
+
+
+roomInput.addEventListener("keydown", event => {
+
+    if (event.key === "Enter") {
+        joinChat();
+    }
+
+});
+
+
+messageInput.addEventListener("keydown", event => {
+
+    if (event.key === "Enter") {
+        sendMessage();
+    }
+
+});
+
+
+copyButton.addEventListener("click", async () => {
+
+    try {
+
+        await navigator.clipboard.writeText(
+            window.location.href
+        );
+
+        copyButton.textContent = "✓ Copied!";
+
+        setTimeout(() => {
+            copyButton.textContent = "🔗 Copy Link";
+        }, 1500);
+
+    } catch {
+
+        alert(
+            "Copy failed. Copy the address from your browser."
+        );
+
+    }
+
+});
+</script>
+
+</body>
+</html>
