@@ -1,0 +1,13 @@
+{
+  "name": "link-chat",
+  "version": "1.0.0",
+  "description": "Simple link-based real-time chat",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "ws": "^8.18.0"
+  }
+}
