@@ -24,6 +24,10 @@ input {
     font: inherit;
 }
 
+button {
+    cursor: pointer;
+}
+
 #login {
     height: 100vh;
     display: flex;
@@ -38,7 +42,7 @@ input {
     background: #1e293b;
     padding: 35px;
     border-radius: 18px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
 }
 
 .logo {
@@ -56,7 +60,6 @@ label {
     display: block;
     margin-top: 18px;
     margin-bottom: 7px;
-    color: #cbd5e1;
 }
 
 input {
@@ -73,19 +76,15 @@ input:focus {
     border-color: #60a5fa;
 }
 
-button {
-    border: 0;
-    border-radius: 10px;
-    padding: 13px 18px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
 #joinButton {
     width: 100%;
     margin-top: 25px;
+    padding: 13px;
+    border: 0;
+    border-radius: 10px;
     background: #3b82f6;
     color: white;
+    font-weight: bold;
 }
 
 #joinButton:hover {
@@ -99,7 +98,7 @@ button {
 }
 
 header {
-    height: 70px;
+    height: 75px;
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -116,31 +115,39 @@ header {
 }
 
 .chat-title {
-    font-weight: bold;
     font-size: 20px;
+    font-weight: bold;
 }
 
-.online {
-    color: #4ade80;
+.status {
     font-size: 13px;
+    margin-top: 3px;
+}
+
+.connected {
+    color: #4ade80;
+}
+
+.disconnected {
+    color: #f87171;
+}
+
+.connecting {
+    color: #facc15;
 }
 
 #copyButton {
     background: #334155;
     color: white;
-}
-
-#copyButton:hover {
-    background: #475569;
+    border: 0;
+    padding: 10px 14px;
+    border-radius: 9px;
 }
 
 #messages {
     flex: 1;
     overflow-y: auto;
     padding: 25px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
 }
 
 .message {
@@ -148,12 +155,12 @@ header {
     background: #1e293b;
     padding: 10px 14px;
     border-radius: 14px;
-    align-self: flex-start;
+    margin-bottom: 12px;
 }
 
 .message.mine {
     background: #2563eb;
-    align-self: flex-end;
+    margin-left: auto;
 }
 
 .name {
@@ -168,15 +175,15 @@ header {
 }
 
 .message-text {
-    word-wrap: break-word;
     white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .system {
     text-align: center;
     color: #64748b;
     font-size: 13px;
-    margin: 5px;
+    margin: 12px;
 }
 
 #composer {
@@ -194,19 +201,25 @@ header {
 #sendButton {
     background: #3b82f6;
     color: white;
+    border: 0;
+    border-radius: 10px;
+    padding: 13px 18px;
+    font-weight: bold;
 }
 
-#sendButton:hover {
-    background: #2563eb;
+#sendButton:disabled {
+    opacity: .5;
+    cursor: not-allowed;
 }
 
 @media (max-width: 600px) {
+
     header {
         padding: 0 12px;
     }
 
     .chat-title {
-        font-size: 16px;
+        font-size: 17px;
     }
 
     #messages {
@@ -216,10 +229,6 @@ header {
     .message {
         max-width: 88%;
     }
-
-    #copyButton {
-        padding: 10px;
-    }
 }
 </style>
 </head>
@@ -227,17 +236,20 @@ header {
 <body>
 
 <!-- LOGIN -->
+
 <div id="login">
 
     <div class="login-box">
 
-        <div class="logo">💬 LinkChat</div>
-
-        <div class="subtitle">
-            Create a private chat room and share the link.
+        <div class="logo">
+            💬 LinkChat
         </div>
 
-        <label for="username">Your name</label>
+        <div class="subtitle">
+            Create a room and share the link.
+        </div>
+
+        <label>Your name</label>
 
         <input
             id="username"
@@ -246,12 +258,12 @@ header {
             autocomplete="off"
         >
 
-        <label for="room">Room name</label>
+        <label>Room name</label>
 
         <input
             id="room"
             maxlength="50"
-            placeholder="Example: friends"
+            placeholder="Example: Chat"
             autocomplete="off"
         >
 
@@ -265,6 +277,7 @@ header {
 
 
 <!-- CHAT -->
+
 <div id="chat">
 
     <header>
@@ -272,13 +285,19 @@ header {
         <div class="header-left">
 
             <div>
+
                 <div class="chat-title">
                     💬 <span id="roomTitle"></span>
                 </div>
 
-                <div class="online">
-                    ● <span id="userCount">0</span> online
+                <div id="status" class="status connecting">
+                    🟡 Connecting...
                 </div>
+
+                <div class="status">
+                    👥 <span id="userCount">0</span> online
+                </div>
+
             </div>
 
         </div>
@@ -300,9 +319,10 @@ header {
             maxlength="1000"
             placeholder="Type a message..."
             autocomplete="off"
+            disabled
         >
 
-        <button id="sendButton">
+        <button id="sendButton" disabled>
             Send
         </button>
 
@@ -312,286 +332,593 @@ header {
 
 
 <script>
+
 const login = document.getElementById("login");
 const chat = document.getElementById("chat");
 
-const usernameInput = document.getElementById("username");
-const roomInput = document.getElementById("room");
+const usernameInput =
+    document.getElementById("username");
 
-const joinButton = document.getElementById("joinButton");
+const roomInput =
+    document.getElementById("room");
 
-const messages = document.getElementById("messages");
-const messageInput = document.getElementById("messageInput");
-const sendButton = document.getElementById("sendButton");
+const joinButton =
+    document.getElementById("joinButton");
 
-const roomTitle = document.getElementById("roomTitle");
-const userCount = document.getElementById("userCount");
+const roomTitle =
+    document.getElementById("roomTitle");
 
-const copyButton = document.getElementById("copyButton");
+const statusElement =
+    document.getElementById("status");
+
+const userCount =
+    document.getElementById("userCount");
+
+const messages =
+    document.getElementById("messages");
+
+const messageInput =
+    document.getElementById("messageInput");
+
+const sendButton =
+    document.getElementById("sendButton");
+
+const copyButton =
+    document.getElementById("copyButton");
+
 
 let socket = null;
+
 let username = "";
+
 let room = "";
 
+let reconnectTimer = null;
 
-function getRoomFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get("room") || "";
-}
+let manuallyDisconnected = false;
 
 
-const urlRoom = getRoomFromURL();
+/* Get room from URL */
+
+const urlParams =
+    new URLSearchParams(window.location.search);
+
+const urlRoom =
+    urlParams.get("room");
 
 if (urlRoom) {
     roomInput.value = urlRoom;
 }
 
 
-function addMessage(username, message, mine) {
+/* Change connection status */
 
-    const box = document.createElement("div");
+function setStatus(type, text) {
 
-    box.className = "message";
+    statusElement.className =
+        "status " + type;
+
+    statusElement.textContent =
+        text;
+}
+
+
+/* Add a normal message */
+
+function addMessage(name, message, mine) {
+
+    const box =
+        document.createElement("div");
+
+    box.className =
+        "message";
 
     if (mine) {
         box.classList.add("mine");
     }
 
-    const name = document.createElement("div");
 
-    name.className = "name";
-    name.textContent = username;
+    const nameElement =
+        document.createElement("div");
 
-    const text = document.createElement("div");
+    nameElement.className =
+        "name";
 
-    text.className = "message-text";
-    text.textContent = message;
-
-    box.appendChild(name);
-    box.appendChild(text);
-
-    messages.appendChild(box);
-
-    messages.scrollTop = messages.scrollHeight;
-}
+    nameElement.textContent =
+        name;
 
 
-function addSystemMessage(message) {
+    const messageElement =
+        document.createElement("div");
 
-    const box = document.createElement("div");
+    messageElement.className =
+        "message-text";
 
-    box.className = "system";
+    messageElement.textContent =
+        message;
 
-    box.textContent = message;
+
+    box.appendChild(nameElement);
+
+    box.appendChild(messageElement);
 
     messages.appendChild(box);
 
-    messages.scrollTop = messages.scrollHeight;
+    messages.scrollTop =
+        messages.scrollHeight;
 }
 
+
+/* Add system message */
+
+function addSystemMessage(text) {
+
+    const element =
+        document.createElement("div");
+
+    element.className =
+        "system";
+
+    element.textContent =
+        text;
+
+    messages.appendChild(element);
+
+    messages.scrollTop =
+        messages.scrollHeight;
+}
+
+
+/* Enable / disable composer */
+
+function setComposerEnabled(enabled) {
+
+    messageInput.disabled =
+        !enabled;
+
+    sendButton.disabled =
+        !enabled;
+}
+
+
+/* Connect to server */
 
 function connect() {
 
-    const protocol =
-        location.protocol === "https:"
-            ? "wss:"
-            : "ws:";
+    clearTimeout(reconnectTimer);
 
-    socket = new WebSocket(
-        protocol + "//" + location.host
+    setStatus(
+        "connecting",
+        "🟡 Connecting..."
     );
 
 
-    socket.addEventListener("open", () => {
+    /*
+       IMPORTANT:
+       Use wss:// for HTTPS.
+       Use ws:// for HTTP.
+    */
 
-        socket.send(JSON.stringify({
-            type: "join",
-            username: username,
-            room: room
-        }));
-
-    });
-
-
-    socket.addEventListener("message", event => {
-
-        let data;
-
-        try {
-            data = JSON.parse(event.data);
-        } catch {
-            return;
-        }
+    const protocol =
+        window.location.protocol === "https:"
+            ? "wss:"
+            : "ws:";
 
 
-        if (data.type === "joined") {
+    const websocketURL =
+        protocol +
+        "//" +
+        window.location.host;
 
-            roomTitle.textContent = data.room;
 
-            login.style.display = "none";
-            chat.style.display = "flex";
+    console.log(
+        "Connecting to:",
+        websocketURL
+    );
+
+
+    try {
+
+        socket =
+            new WebSocket(websocketURL);
+
+    } catch (error) {
+
+        console.error(error);
+
+        setStatus(
+            "disconnected",
+            "🔴 Connection failed"
+        );
+
+        scheduleReconnect();
+
+        return;
+    }
+
+
+    socket.addEventListener(
+        "open",
+        function() {
+
+            console.log(
+                "WebSocket connected"
+            );
+
+
+            setStatus(
+                "connected",
+                "🟢 Connected"
+            );
+
+
+            socket.send(
+                JSON.stringify({
+                    type: "join",
+                    username: username,
+                    room: room
+                })
+            );
+
+
+            setComposerEnabled(true);
 
             messageInput.focus();
-
-            return;
         }
+    );
 
 
-        if (data.type === "message") {
+    socket.addEventListener(
+        "message",
+        function(event) {
 
-            addMessage(
-                data.username,
-                data.message,
-                data.username === username
+            let data;
+
+
+            try {
+
+                data =
+                    JSON.parse(event.data);
+
+            } catch (error) {
+
+                console.error(
+                    "Invalid server message",
+                    error
+                );
+
+                return;
+            }
+
+
+            console.log(
+                "Server:",
+                data
             );
 
-            return;
+
+            if (data.type === "joined") {
+
+                roomTitle.textContent =
+                    data.room;
+
+                return;
+            }
+
+
+            if (data.type === "message") {
+
+                addMessage(
+                    data.username,
+                    data.message,
+                    data.username === username
+                );
+
+                return;
+            }
+
+
+            if (data.type === "system") {
+
+                addSystemMessage(
+                    data.message
+                );
+
+                return;
+            }
+
+
+            if (data.type === "users") {
+
+                userCount.textContent =
+                    data.count;
+
+                return;
+            }
+
+
+            if (data.type === "error") {
+
+                addSystemMessage(
+                    "Server error: " +
+                    data.message
+                );
+
+            }
+
         }
+    );
 
 
-        if (data.type === "system") {
+    socket.addEventListener(
+        "close",
+        function() {
 
-            addSystemMessage(data.message);
-
-            return;
-        }
-
-
-        if (data.type === "users") {
-
-            userCount.textContent = data.count;
-
-            return;
-        }
-
-
-        if (data.type === "error") {
-
-            alert(data.message);
-
-        }
-
-    });
-
-
-    socket.addEventListener("close", () => {
-
-        if (chat.style.display === "flex") {
-            addSystemMessage(
-                "Disconnected from the server. Refresh to reconnect."
+            console.log(
+                "WebSocket disconnected"
             );
+
+
+            setComposerEnabled(false);
+
+
+            setStatus(
+                "disconnected",
+                "🔴 Disconnected"
+            );
+
+
+            if (!manuallyDisconnected) {
+
+                addSystemMessage(
+                    "Connection lost. Reconnecting..."
+                );
+
+                scheduleReconnect();
+            }
+
         }
+    );
 
-    });
 
+    socket.addEventListener(
+        "error",
+        function(error) {
+
+            console.error(
+                "WebSocket error:",
+                error
+            );
+
+
+            setStatus(
+                "disconnected",
+                "🔴 Connection error"
+            );
+
+        }
+    );
 }
 
 
+/* Automatic reconnect */
+
+function scheduleReconnect() {
+
+    clearTimeout(reconnectTimer);
+
+
+    reconnectTimer =
+        setTimeout(
+            function() {
+
+                connect();
+
+            },
+            3000
+        );
+}
+
+
+/* Join room */
+
 function joinChat() {
 
-    username = usernameInput.value.trim();
-    room = roomInput.value.trim();
+    username =
+        usernameInput.value.trim();
+
+    room =
+        roomInput.value.trim();
+
 
     if (!username) {
-        alert("Please enter your name.");
+
+        alert(
+            "Please enter your name."
+        );
+
         usernameInput.focus();
+
         return;
     }
+
 
     if (!room) {
-        alert("Please enter a room name.");
+
+        alert(
+            "Please enter a room name."
+        );
+
         roomInput.focus();
+
         return;
     }
 
 
-    const newURL =
-        window.location.pathname +
+    history.replaceState(
+        {},
+        "",
         "?room=" +
-        encodeURIComponent(room);
+        encodeURIComponent(room)
+    );
 
-    window.history.replaceState({}, "", newURL);
+
+    login.style.display =
+        "none";
+
+    chat.style.display =
+        "flex";
+
+
+    roomTitle.textContent =
+        room;
+
+
+    manuallyDisconnected =
+        false;
+
 
     connect();
 }
 
 
+/* Send message */
+
 function sendMessage() {
 
-    const message = messageInput.value.trim();
+    const message =
+        messageInput.value.trim();
 
-    if (!message) return;
 
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
-        alert("Not connected to the server.");
+    if (!message) {
         return;
     }
 
-    socket.send(JSON.stringify({
-        type: "message",
-        message: message
-    }));
+
+    if (
+        !socket ||
+        socket.readyState !== WebSocket.OPEN
+    ) {
+
+        addSystemMessage(
+            "You are not connected."
+        );
+
+        return;
+    }
+
+
+    socket.send(
+        JSON.stringify({
+            type: "message",
+            message: message
+        })
+    );
+
 
     messageInput.value = "";
+
     messageInput.focus();
 }
 
 
-joinButton.addEventListener("click", joinChat);
+/* Join button */
 
-sendButton.addEventListener("click", sendMessage);
-
-
-usernameInput.addEventListener("keydown", event => {
-
-    if (event.key === "Enter") {
-        joinChat();
-    }
-
-});
+joinButton.addEventListener(
+    "click",
+    joinChat
+);
 
 
-roomInput.addEventListener("keydown", event => {
+/* Send button */
 
-    if (event.key === "Enter") {
-        joinChat();
-    }
-
-});
-
-
-messageInput.addEventListener("keydown", event => {
-
-    if (event.key === "Enter") {
-        sendMessage();
-    }
-
-});
+sendButton.addEventListener(
+    "click",
+    sendMessage
+);
 
 
-copyButton.addEventListener("click", async () => {
+/* Enter to join */
 
-    try {
+usernameInput.addEventListener(
+    "keydown",
+    function(event) {
 
-        await navigator.clipboard.writeText(
-            window.location.href
-        );
-
-        copyButton.textContent = "✓ Copied!";
-
-        setTimeout(() => {
-            copyButton.textContent = "🔗 Copy Link";
-        }, 1500);
-
-    } catch {
-
-        alert(
-            "Copy failed. Copy the address from your browser."
-        );
+        if (event.key === "Enter") {
+            joinChat();
+        }
 
     }
+);
 
-});
+
+roomInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Enter") {
+            joinChat();
+        }
+
+    }
+);
+
+
+/* Enter to send */
+
+messageInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            sendMessage();
+        }
+
+    }
+);
+
+
+/* Copy room URL */
+
+copyButton.addEventListener(
+    "click",
+    async function() {
+
+        try {
+
+            await navigator.clipboard.writeText(
+                window.location.href
+            );
+
+
+            copyButton.textContent =
+                "✓ Copied!";
+
+
+            setTimeout(
+                function() {
+
+                    copyButton.textContent =
+                        "🔗 Copy Link";
+
+                },
+                1500
+            );
+
+        } catch (error) {
+
+            alert(
+                "Copy failed. Copy the URL manually."
+            );
+
+        }
+
+    }
+);
+
 </script>
 
 </body>
