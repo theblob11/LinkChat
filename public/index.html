@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
 <title>LinkChat</title>
 
@@ -96,6 +101,19 @@ input:focus {
 }
 
 
+/* PASSWORD */
+
+#passwordGroup {
+    display: block;
+}
+
+.password-help {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 5px;
+}
+
+
 /* CHAT */
 
 #chat {
@@ -116,12 +134,6 @@ header {
     padding: 0 20px;
     background: #1e293b;
     border-bottom: 1px solid #334155;
-}
-
-.header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
 }
 
 .chat-title {
@@ -207,7 +219,7 @@ header {
 }
 
 
-/* EDIT / DELETE BUTTONS */
+/* EDIT / DELETE */
 
 .message-actions {
     display: flex;
@@ -220,7 +232,6 @@ header {
     border-radius: 6px;
     padding: 4px 8px;
     font-size: 11px;
-    cursor: pointer;
     background: rgba(255,255,255,.15);
     color: white;
 }
@@ -229,26 +240,14 @@ header {
     background: rgba(255,255,255,.25);
 }
 
-.edit-button {
-    color: #dbeafe !important;
-}
-
-.delete-button {
-    color: #fecaca !important;
-}
-
 .edited-label {
     font-size: 10px;
-    color: #94a3b8;
+    color: #bfdbfe;
     margin-left: 6px;
 }
 
-.mine .edited-label {
-    color: #bfdbfe;
-}
 
-
-/* SYSTEM MESSAGES */
+/* SYSTEM */
 
 .system {
     text-align: center;
@@ -258,7 +257,7 @@ header {
 }
 
 
-/* MESSAGE COMPOSER */
+/* COMPOSER */
 
 #composer {
     display: flex;
@@ -281,13 +280,8 @@ header {
     font-weight: bold;
 }
 
-#sendButton:hover {
-    background: #2563eb;
-}
-
 #sendButton:disabled {
     opacity: .5;
-    cursor: not-allowed;
 }
 
 
@@ -311,21 +305,17 @@ header {
         max-width: 88%;
     }
 
-    #copyButton {
-        padding: 8px 10px;
-        font-size: 12px;
-    }
-
 }
 
 </style>
+
 </head>
 
 
 <body>
 
 
-<!-- LOGIN SCREEN -->
+<!-- LOGIN -->
 
 <div id="login">
 
@@ -340,7 +330,7 @@ header {
         </div>
 
 
-        <label for="username">
+        <label>
             Your name
         </label>
 
@@ -352,16 +342,33 @@ header {
         >
 
 
-        <label for="room">
+        <label>
             Room name
         </label>
 
         <input
             id="room"
-            maxlength="50"
-            placeholder="Example: Chat"
+            maxlength="100"
+            placeholder="Example: Friends"
             autocomplete="off"
         >
+
+
+        <label>
+            Room password
+        </label>
+
+        <input
+            id="password"
+            type="password"
+            maxlength="100"
+            placeholder="Leave blank for no password"
+            autocomplete="off"
+        >
+
+        <div class="password-help">
+            The first password used for a new room becomes its password.
+        </div>
 
 
         <button id="joinButton">
@@ -374,29 +381,24 @@ header {
 
 
 
-<!-- CHAT SCREEN -->
+<!-- CHAT -->
 
 <div id="chat">
 
-
     <header>
 
-        <div class="header-left">
+        <div>
 
-            <div>
+            <div class="chat-title">
+                💬 <span id="roomTitle"></span>
+            </div>
 
-                <div class="chat-title">
-                    💬 <span id="roomTitle"></span>
-                </div>
+            <div id="status" class="status connecting">
+                🟡 Connecting...
+            </div>
 
-                <div id="status" class="status connecting">
-                    🟡 Connecting...
-                </div>
-
-                <div class="status">
-                    👥 <span id="userCount">0</span> online
-                </div>
-
+            <div class="status">
+                👥 <span id="userCount">0</span> online
             </div>
 
         </div>
@@ -409,9 +411,7 @@ header {
     </header>
 
 
-
     <div id="messages"></div>
-
 
 
     <div id="composer">
@@ -430,15 +430,12 @@ header {
 
     </div>
 
-
 </div>
 
 
 
 <script>
 
-
-/* ELEMENTS */
 
 const login =
     document.getElementById("login");
@@ -451,6 +448,9 @@ const usernameInput =
 
 const roomInput =
     document.getElementById("room");
+
+const passwordInput =
+    document.getElementById("password");
 
 const joinButton =
     document.getElementById("joinButton");
@@ -477,17 +477,19 @@ const copyButton =
     document.getElementById("copyButton");
 
 
-/* VARIABLES */
-
 let socket = null;
 
 let username = "";
 
 let room = "";
 
+let password = "";
+
 let reconnectTimer = null;
 
 let manuallyDisconnected = false;
+
+let roomChecked = false;
 
 
 
@@ -502,15 +504,12 @@ const urlRoom =
     urlParams.get("room");
 
 if (urlRoom) {
-
-    roomInput.value =
-        urlRoom;
-
+    roomInput.value = urlRoom;
 }
 
 
 
-/* CONNECTION STATUS */
+/* STATUS */
 
 function setStatus(type, text) {
 
@@ -524,7 +523,7 @@ function setStatus(type, text) {
 
 
 
-/* FORMAT TIME */
+/* TIME */
 
 function formatTime(time) {
 
@@ -532,32 +531,26 @@ function formatTime(time) {
         return "";
     }
 
-
     const date =
         new Date(time);
 
     const now =
         new Date();
 
-
     const isToday =
         date.toDateString() ===
         now.toDateString();
 
-
     const yesterday =
         new Date(now);
-
 
     yesterday.setDate(
         now.getDate() - 1
     );
 
-
     const isYesterday =
         date.toDateString() ===
         yesterday.toDateString();
-
 
     const timeString =
         date.toLocaleTimeString([], {
@@ -565,22 +558,13 @@ function formatTime(time) {
             minute: "2-digit"
         });
 
-
     if (isToday) {
-
-        return "Today at " +
-            timeString;
-
+        return "Today at " + timeString;
     }
-
 
     if (isYesterday) {
-
-        return "Yesterday at " +
-            timeString;
-
+        return "Yesterday at " + timeString;
     }
-
 
     return date.toLocaleDateString([], {
         month: "short",
@@ -607,108 +591,70 @@ function addMessage(
     const box =
         document.createElement("div");
 
-
     box.className =
         "message";
 
-
     if (mine) {
-
-        box.classList.add(
-            "mine"
-        );
-
+        box.classList.add("mine");
     }
-
 
     box.dataset.id =
         String(id);
 
 
-    /* NAME */
-
     const nameElement =
         document.createElement("div");
 
-
     nameElement.className =
         "name";
-
 
     nameElement.textContent =
         name;
 
 
-
-    /* MESSAGE */
-
     const messageElement =
         document.createElement("div");
 
-
     messageElement.className =
         "message-text";
-
 
     messageElement.textContent =
         message;
 
 
-
-    /* TIME */
-
     const timeElement =
         document.createElement("div");
 
-
     timeElement.className =
         "message-time";
-
 
     timeElement.textContent =
         formatTime(time);
 
 
+    box.appendChild(nameElement);
 
-    box.appendChild(
-        nameElement
-    );
+    box.appendChild(messageElement);
 
-
-    box.appendChild(
-        messageElement
-    );
-
-
-    box.appendChild(
-        timeElement
-    );
+    box.appendChild(timeElement);
 
 
 
-    /* EDIT / DELETE */
+    /* OWN MESSAGE BUTTONS */
 
     if (mine) {
-
 
         const actions =
             document.createElement("div");
 
-
         actions.className =
             "message-actions";
-
 
 
         /* EDIT */
 
         const editButton =
             document.createElement("button");
-
-
-        editButton.className =
-            "edit-button";
-
 
         editButton.textContent =
             "✏️ Edit";
@@ -717,70 +663,48 @@ function addMessage(
         editButton.onclick =
             function() {
 
-
                 const newMessage =
                     prompt(
                         "Edit your message:",
                         messageElement.textContent
                     );
 
-
                 if (
                     newMessage === null
                 ) {
-
                     return;
-
                 }
-
 
                 const trimmed =
                     newMessage.trim();
 
-
                 if (!trimmed) {
-
                     return;
-
                 }
 
-
                 if (
-                    !socket ||
-                    socket.readyState !==
+                    socket &&
+                    socket.readyState ===
                     WebSocket.OPEN
                 ) {
 
-                    alert(
-                        "You are not connected."
+                    socket.send(
+                        JSON.stringify({
+                            type: "edit",
+                            id: Number(id),
+                            message: trimmed
+                        })
                     );
-
-                    return;
 
                 }
 
-
-                socket.send(
-                    JSON.stringify({
-                        type: "edit",
-                        id: Number(id),
-                        message: trimmed
-                    })
-                );
-
             };
-
 
 
         /* DELETE */
 
         const deleteButton =
             document.createElement("button");
-
-
-        deleteButton.className =
-            "delete-button";
-
 
         deleteButton.textContent =
             "🗑️ Delete";
@@ -789,55 +713,39 @@ function addMessage(
         deleteButton.onclick =
             function() {
 
-
-                const confirmed =
-                    confirm(
-                        "Are you sure you want to delete this message?"
-                    );
-
-
-                if (!confirmed) {
-
+                if (
+                    !confirm(
+                        "Delete this message?"
+                    )
+                ) {
                     return;
-
                 }
 
-
                 if (
-                    !socket ||
-                    socket.readyState !==
+                    socket &&
+                    socket.readyState ===
                     WebSocket.OPEN
                 ) {
 
-                    alert(
-                        "You are not connected."
+                    socket.send(
+                        JSON.stringify({
+                            type: "delete",
+                            id: Number(id)
+                        })
                     );
-
-                    return;
 
                 }
 
-
-                socket.send(
-                    JSON.stringify({
-                        type: "delete",
-                        id: Number(id)
-                    })
-                );
-
             };
-
 
 
         actions.appendChild(
             editButton
         );
 
-
         actions.appendChild(
             deleteButton
         );
-
 
         box.appendChild(
             actions
@@ -846,11 +754,7 @@ function addMessage(
     }
 
 
-
-    messages.appendChild(
-        box
-    );
-
+    messages.appendChild(box);
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -866,19 +770,13 @@ function addSystemMessage(text) {
     const element =
         document.createElement("div");
 
-
     element.className =
         "system";
-
 
     element.textContent =
         text;
 
-
-    messages.appendChild(
-        element
-    );
-
+    messages.appendChild(element);
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -887,11 +785,9 @@ function addSystemMessage(text) {
 
 
 
-/* ENABLE / DISABLE COMPOSER */
+/* COMPOSER */
 
-function setComposerEnabled(
-    enabled
-) {
+function setComposerEnabled(enabled) {
 
     messageInput.disabled =
         !enabled;
@@ -911,7 +807,6 @@ function connect() {
         reconnectTimer
     );
 
-
     setStatus(
         "connecting",
         "🟡 Connecting..."
@@ -925,36 +820,17 @@ function connect() {
             : "ws:";
 
 
-    const websocketURL =
-        protocol +
-        "//" +
-        window.location.host;
-
-
-    console.log(
-        "Connecting to:",
-        websocketURL
-    );
-
-
     socket =
         new WebSocket(
-            websocketURL
+            protocol +
+            "//" +
+            window.location.host
         );
 
-
-
-    /* OPEN */
 
     socket.addEventListener(
         "open",
         function() {
-
-
-            console.log(
-                "WebSocket connected"
-            );
-
 
             setStatus(
                 "connected",
@@ -966,29 +842,18 @@ function connect() {
                 JSON.stringify({
                     type: "join",
                     username: username,
-                    room: room
+                    room: room,
+                    password: password
                 })
             );
-
-
-            setComposerEnabled(
-                true
-            );
-
-
-            messageInput.focus();
 
         }
     );
 
 
-
-    /* MESSAGE */
-
     socket.addEventListener(
         "message",
         function(event) {
-
 
             let data;
 
@@ -1000,17 +865,11 @@ function connect() {
                         event.data
                     );
 
-            } catch (error) {
-
-                console.error(
-                    "Invalid server message:",
-                    error
-                );
+            } catch {
 
                 return;
 
             }
-
 
 
             /* JOINED */
@@ -1023,13 +882,50 @@ function connect() {
                 roomTitle.textContent =
                     data.room;
 
+                setComposerEnabled(
+                    true
+                );
+
+                messageInput.focus();
+
                 return;
 
             }
 
 
+            /* PASSWORD ERROR */
 
-            /* NEW MESSAGE */
+            if (
+                data.type ===
+                "passwordError"
+            ) {
+
+                setComposerEnabled(
+                    false
+                );
+
+                alert(
+                    "Incorrect room password."
+                );
+
+                chat.style.display =
+                    "none";
+
+                login.style.display =
+                    "flex";
+
+                passwordInput.focus();
+
+                if (socket) {
+                    socket.close();
+                }
+
+                return;
+
+            }
+
+
+            /* MESSAGE */
 
             if (
                 data.type ===
@@ -1049,65 +945,42 @@ function connect() {
             }
 
 
-
-            /* EDITED MESSAGE */
+            /* EDIT */
 
             if (
                 data.type ===
                 "messageEdited"
             ) {
 
-
-                const messageElement =
+                const element =
                     document.querySelector(
                         `.message[data-id="${data.id}"]`
                     );
 
+                if (element) {
 
-                if (
-                    messageElement
-                ) {
-
-
-                    const textElement =
-                        messageElement.querySelector(
+                    const text =
+                        element.querySelector(
                             ".message-text"
                         );
 
+                    if (text) {
 
-                    if (
-                        textElement
-                    ) {
-
-                        textElement.textContent =
+                        text.textContent =
                             data.message;
-
-                    }
-
-
-                    const oldLabel =
-                        messageElement.querySelector(
-                            ".edited-label"
-                        );
-
-
-                    if (!oldLabel) {
 
                         const label =
                             document.createElement(
                                 "span"
                             );
 
-
                         label.className =
                             "edited-label";
 
-
                         label.textContent =
-                            "(edited)";
+                            " (edited)";
 
-
-                        textElement.appendChild(
+                        text.appendChild(
                             label
                         );
 
@@ -1115,43 +988,33 @@ function connect() {
 
                 }
 
-
                 return;
 
             }
 
 
-
-            /* DELETED MESSAGE */
+            /* DELETE */
 
             if (
                 data.type ===
                 "messageDeleted"
             ) {
 
-
-                const messageElement =
+                const element =
                     document.querySelector(
                         `.message[data-id="${data.id}"]`
                     );
 
-
-                if (
-                    messageElement
-                ) {
-
-                    messageElement.remove();
-
+                if (element) {
+                    element.remove();
                 }
-
 
                 return;
 
             }
 
 
-
-            /* SYSTEM MESSAGE */
+            /* SYSTEM */
 
             if (
                 data.type ===
@@ -1167,8 +1030,7 @@ function connect() {
             }
 
 
-
-            /* USER COUNT */
+            /* USERS */
 
             if (
                 data.type ===
@@ -1183,8 +1045,7 @@ function connect() {
             }
 
 
-
-            /* SERVER ERROR */
+            /* ERROR */
 
             if (
                 data.type ===
@@ -1192,115 +1053,53 @@ function connect() {
             ) {
 
                 addSystemMessage(
-                    "Server error: " +
                     data.message
                 );
-
-                return;
 
             }
 
         }
     );
 
-
-
-    /* CLOSE */
 
     socket.addEventListener(
         "close",
         function() {
 
-
             setComposerEnabled(
                 false
             );
-
-
-            setStatus(
-                "disconnected",
-                "🔴 Disconnected"
-            );
-
 
             if (
                 !manuallyDisconnected
             ) {
 
-
-                addSystemMessage(
-                    "Connection lost. Reconnecting..."
+                setStatus(
+                    "disconnected",
+                    "🔴 Disconnected"
                 );
-
-
-                scheduleReconnect();
 
             }
 
         }
     );
 
-
-
-    /* ERROR */
-
-    socket.addEventListener(
-        "error",
-        function(error) {
-
-
-            console.error(
-                "WebSocket error:",
-                error
-            );
-
-
-            setStatus(
-                "disconnected",
-                "🔴 Connection error"
-            );
-
-        }
-    );
-
 }
 
 
 
-/* RECONNECT */
-
-function scheduleReconnect() {
-
-    clearTimeout(
-        reconnectTimer
-    );
-
-
-    reconnectTimer =
-        setTimeout(
-            function() {
-
-                connect();
-
-            },
-            3000
-        );
-
-}
-
-
-
-/* JOIN CHAT */
+/* JOIN */
 
 function joinChat() {
 
     username =
         usernameInput.value.trim();
 
-
     room =
         roomInput.value.trim();
 
+    password =
+        passwordInput.value;
 
 
     if (!username) {
@@ -1309,13 +1108,11 @@ function joinChat() {
             "Please enter your name."
         );
 
-
         usernameInput.focus();
 
         return;
 
     }
-
 
 
     if (!room) {
@@ -1324,13 +1121,16 @@ function joinChat() {
             "Please enter a room name."
         );
 
-
         roomInput.focus();
 
         return;
 
     }
 
+
+    if (room.length < 1) {
+        return;
+    }
 
 
     history.replaceState(
@@ -1341,22 +1141,20 @@ function joinChat() {
     );
 
 
-
     login.style.display =
         "none";
-
 
     chat.style.display =
         "flex";
 
-
     roomTitle.textContent =
         room;
 
+    messages.innerHTML =
+        "";
 
     manuallyDisconnected =
         false;
-
 
     connect();
 
@@ -1364,20 +1162,16 @@ function joinChat() {
 
 
 
-/* SEND MESSAGE */
+/* SEND */
 
 function sendMessage() {
 
     const message =
         messageInput.value.trim();
 
-
     if (!message) {
-
         return;
-
     }
-
 
     if (
         !socket ||
@@ -1393,7 +1187,6 @@ function sendMessage() {
 
     }
 
-
     socket.send(
         JSON.stringify({
             type: "message",
@@ -1401,10 +1194,8 @@ function sendMessage() {
         })
     );
 
-
     messageInput.value =
         "";
-
 
     messageInput.focus();
 
@@ -1412,7 +1203,7 @@ function sendMessage() {
 
 
 
-/* JOIN BUTTON */
+/* EVENTS */
 
 joinButton.addEventListener(
     "click",
@@ -1420,17 +1211,11 @@ joinButton.addEventListener(
 );
 
 
-
-/* SEND BUTTON */
-
 sendButton.addEventListener(
     "click",
     sendMessage
 );
 
-
-
-/* ENTER NAME */
 
 usernameInput.addEventListener(
     "keydown",
@@ -1440,17 +1225,12 @@ usernameInput.addEventListener(
             event.key ===
             "Enter"
         ) {
-
             joinChat();
-
         }
 
     }
 );
 
-
-
-/* ENTER ROOM */
 
 roomInput.addEventListener(
     "keydown",
@@ -1460,17 +1240,27 @@ roomInput.addEventListener(
             event.key ===
             "Enter"
         ) {
-
             joinChat();
-
         }
 
     }
 );
 
 
+passwordInput.addEventListener(
+    "keydown",
+    function(event) {
 
-/* ENTER MESSAGE */
+        if (
+            event.key ===
+            "Enter"
+        ) {
+            joinChat();
+        }
+
+    }
+);
+
 
 messageInput.addEventListener(
     "keydown",
@@ -1491,25 +1281,18 @@ messageInput.addEventListener(
 );
 
 
-
-/* COPY ROOM LINK */
-
 copyButton.addEventListener(
     "click",
     async function() {
 
-
         try {
-
 
             await navigator.clipboard.writeText(
                 window.location.href
             );
 
-
             copyButton.textContent =
                 "✓ Copied!";
-
 
             setTimeout(
                 function() {
@@ -1521,9 +1304,7 @@ copyButton.addEventListener(
                 1500
             );
 
-
-        } catch (error) {
-
+        } catch {
 
             alert(
                 "Copy failed. Copy the URL manually."
