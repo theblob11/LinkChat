@@ -27,9 +27,7 @@ body {
 }
 
 
-/* =========================
-   LOGIN
-========================= */
+/* LOGIN */
 
 #login {
     height: 100vh;
@@ -45,7 +43,6 @@ body {
     background: #1e293b;
     padding: 35px;
     border-radius: 18px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.4);
 }
 
 .logo {
@@ -55,8 +52,7 @@ body {
 
 .subtitle {
     color: #94a3b8;
-    margin-top: 8px;
-    margin-bottom: 25px;
+    margin: 8px 0 25px;
 }
 
 label {
@@ -97,14 +93,8 @@ input:focus {
     cursor: pointer;
 }
 
-#joinButton:hover {
-    background: #2563eb;
-}
 
-
-/* =========================
-   CHAT
-========================= */
+/* CHAT */
 
 #chat {
     display: none;
@@ -113,9 +103,7 @@ input:focus {
 }
 
 
-/* =========================
-   HEADER
-========================= */
+/* HEADER */
 
 header {
     height: 72px;
@@ -161,14 +149,8 @@ header {
     cursor: pointer;
 }
 
-#copyButton:hover {
-    background: #475569;
-}
 
-
-/* =========================
-   CHAT AREA
-========================= */
+/* CHAT AREA */
 
 .chat-area {
     flex: 1;
@@ -177,9 +159,7 @@ header {
 }
 
 
-/* =========================
-   MESSAGES
-========================= */
+/* MESSAGES */
 
 #messages {
     flex: 1;
@@ -227,9 +207,7 @@ header {
 }
 
 
-/* =========================
-   MESSAGE BUTTONS
-========================= */
+/* ACTIONS */
 
 .message-actions {
     display: flex;
@@ -247,10 +225,6 @@ header {
     cursor: pointer;
 }
 
-.message-actions button:hover {
-    background: rgba(255,255,255,.25);
-}
-
 .edited-label {
     font-size: 10px;
     margin-left: 5px;
@@ -258,9 +232,7 @@ header {
 }
 
 
-/* =========================
-   SYSTEM MESSAGE
-========================= */
+/* SYSTEM */
 
 .system {
     text-align: center;
@@ -270,9 +242,7 @@ header {
 }
 
 
-/* =========================
-   ONLINE PANEL
-========================= */
+/* ONLINE */
 
 #onlinePanel {
     width: 230px;
@@ -317,9 +287,21 @@ header {
 }
 
 
-/* =========================
-   COMPOSER
-========================= */
+/* TYPING INDICATOR */
+
+#typingIndicator {
+    min-height: 22px;
+    padding: 0 20px;
+
+    color: #94a3b8;
+
+    font-size: 12px;
+
+    background: #1e293b;
+}
+
+
+/* COMPOSER */
 
 #composer {
     display: flex;
@@ -352,9 +334,7 @@ header {
 }
 
 
-/* =========================
-   MOBILE
-========================= */
+/* MOBILE */
 
 @media (max-width: 700px) {
 
@@ -364,10 +344,6 @@ header {
 
     .message {
         max-width: 88%;
-    }
-
-    header {
-        padding: 0 12px;
     }
 
     #messages {
@@ -384,9 +360,7 @@ header {
 <body>
 
 
-<!-- =========================
-     LOGIN
-========================= -->
+<!-- LOGIN -->
 
 <div id="login">
 
@@ -401,9 +375,7 @@ header {
         </div>
 
 
-        <label>
-            Your name
-        </label>
+        <label>Your name</label>
 
         <input
             id="username"
@@ -413,9 +385,7 @@ header {
         >
 
 
-        <label>
-            Room name
-        </label>
+        <label>Room name</label>
 
         <input
             id="room"
@@ -425,9 +395,7 @@ header {
         >
 
 
-        <label>
-            Room password
-        </label>
+        <label>Room password</label>
 
         <input
             id="password"
@@ -451,10 +419,7 @@ header {
 </div>
 
 
-
-<!-- =========================
-     CHAT
-========================= -->
+<!-- CHAT -->
 
 <div id="chat">
 
@@ -484,16 +449,10 @@ header {
     </header>
 
 
-
     <div class="chat-area">
-
-
-        <!-- MESSAGES -->
 
         <div id="messages"></div>
 
-
-        <!-- ONLINE USERS -->
 
         <div id="onlinePanel">
 
@@ -512,9 +471,12 @@ header {
 
         </div>
 
-
     </div>
 
+
+    <!-- TYPING -->
+
+    <div id="typingIndicator"></div>
 
 
     <!-- COMPOSER -->
@@ -538,92 +500,61 @@ header {
 
     </div>
 
-
 </div>
-
 
 
 <script>
 
 
-/* =========================
-   ELEMENTS
-========================= */
+/* ELEMENTS */
 
 const login =
-    document.getElementById(
-        "login"
-    );
+    document.getElementById("login");
 
 const chat =
-    document.getElementById(
-        "chat"
-    );
+    document.getElementById("chat");
 
 const usernameInput =
-    document.getElementById(
-        "username"
-    );
+    document.getElementById("username");
 
 const roomInput =
-    document.getElementById(
-        "room"
-    );
+    document.getElementById("room");
 
 const passwordInput =
-    document.getElementById(
-        "password"
-    );
+    document.getElementById("password");
 
 const joinButton =
-    document.getElementById(
-        "joinButton"
-    );
+    document.getElementById("joinButton");
 
 const roomTitle =
-    document.getElementById(
-        "roomTitle"
-    );
+    document.getElementById("roomTitle");
 
 const statusElement =
-    document.getElementById(
-        "status"
-    );
+    document.getElementById("status");
 
 const messages =
-    document.getElementById(
-        "messages"
-    );
+    document.getElementById("messages");
 
 const messageInput =
-    document.getElementById(
-        "messageInput"
-    );
+    document.getElementById("messageInput");
 
 const sendButton =
-    document.getElementById(
-        "sendButton"
-    );
+    document.getElementById("sendButton");
 
 const copyButton =
-    document.getElementById(
-        "copyButton"
-    );
+    document.getElementById("copyButton");
 
 const onlineUsers =
-    document.getElementById(
-        "onlineUsers"
-    );
+    document.getElementById("onlineUsers");
 
 const onlineCount =
-    document.getElementById(
-        "onlineCount"
-    );
+    document.getElementById("onlineCount");
+
+const typingIndicator =
+    document.getElementById("typingIndicator");
 
 
-/* =========================
-   VARIABLES
-========================= */
+/* VARIABLES */
 
 let socket = null;
 
@@ -633,10 +564,12 @@ let room = "";
 
 let password = "";
 
+let typingTimer = null;
 
-/* =========================
-   URL ROOM
-========================= */
+let currentlyTyping = new Set();
+
+
+/* ROOM FROM URL */
 
 const params =
     new URLSearchParams(
@@ -647,21 +580,13 @@ const urlRoom =
     params.get("room");
 
 if (urlRoom) {
-
-    roomInput.value =
-        urlRoom;
-
+    roomInput.value = urlRoom;
 }
 
 
-/* =========================
-   STATUS
-========================= */
+/* STATUS */
 
-function setStatus(
-    type,
-    text
-) {
+function setStatus(type, text) {
 
     statusElement.className =
         "status " + type;
@@ -672,9 +597,7 @@ function setStatus(
 }
 
 
-/* =========================
-   TIME
-========================= */
+/* TIME */
 
 function formatTime(time) {
 
@@ -682,11 +605,9 @@ function formatTime(time) {
         return "";
     }
 
-    const date =
-        new Date(time);
+    const date = new Date(time);
 
-    const now =
-        new Date();
+    const now = new Date();
 
     if (
         date.toDateString() ===
@@ -728,9 +649,7 @@ function formatTime(time) {
 }
 
 
-/* =========================
-   ADD MESSAGE
-========================= */
+/* ADD MESSAGE */
 
 function addMessage(
     name,
@@ -741,9 +660,7 @@ function addMessage(
 ) {
 
     const box =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     box.className =
         "message";
@@ -757,9 +674,7 @@ function addMessage(
 
 
     const nameElement =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     nameElement.className =
         "name";
@@ -769,9 +684,7 @@ function addMessage(
 
 
     const messageElement =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     messageElement.className =
         "message-text";
@@ -781,9 +694,7 @@ function addMessage(
 
 
     const timeElement =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     timeElement.className =
         "message-time";
@@ -792,38 +703,24 @@ function addMessage(
         formatTime(time);
 
 
-    box.appendChild(
-        nameElement
-    );
-
-    box.appendChild(
-        messageElement
-    );
-
-    box.appendChild(
-        timeElement
-    );
+    box.appendChild(nameElement);
+    box.appendChild(messageElement);
+    box.appendChild(timeElement);
 
 
-    /* =========================
-       EDIT / DELETE
-    ========================= */
+    /* EDIT / DELETE */
 
     if (mine) {
 
         const actions =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
         actions.className =
             "message-actions";
 
 
         const editButton =
-            document.createElement(
-                "button"
-            );
+            document.createElement("button");
 
         editButton.textContent =
             "✏️ Edit";
@@ -840,8 +737,7 @@ function addMessage(
 
 
                 if (
-                    newMessage ===
-                    null
+                    newMessage === null
                 ) {
                     return;
                 }
@@ -864,12 +760,9 @@ function addMessage(
 
                     socket.send(
                         JSON.stringify({
-                            type:
-                                "edit",
-                            id:
-                                Number(id),
-                            message:
-                                trimmed
+                            type: "edit",
+                            id: Number(id),
+                            message: trimmed
                         })
                     );
 
@@ -879,9 +772,7 @@ function addMessage(
 
 
         const deleteButton =
-            document.createElement(
-                "button"
-            );
+            document.createElement("button");
 
         deleteButton.textContent =
             "🗑️ Delete";
@@ -907,10 +798,8 @@ function addMessage(
 
                     socket.send(
                         JSON.stringify({
-                            type:
-                                "delete",
-                            id:
-                                Number(id)
+                            type: "delete",
+                            id: Number(id)
                         })
                     );
 
@@ -919,25 +808,15 @@ function addMessage(
             };
 
 
-        actions.appendChild(
-            editButton
-        );
+        actions.appendChild(editButton);
+        actions.appendChild(deleteButton);
 
-        actions.appendChild(
-            deleteButton
-        );
-
-        box.appendChild(
-            actions
-        );
+        box.appendChild(actions);
 
     }
 
 
-    messages.appendChild(
-        box
-    );
-
+    messages.appendChild(box);
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -945,18 +824,12 @@ function addMessage(
 }
 
 
-/* =========================
-   SYSTEM MESSAGE
-========================= */
+/* SYSTEM MESSAGE */
 
-function addSystemMessage(
-    text
-) {
+function addSystemMessage(text) {
 
     const element =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     element.className =
         "system";
@@ -964,9 +837,7 @@ function addSystemMessage(
     element.textContent =
         text;
 
-    messages.appendChild(
-        element
-    );
+    messages.appendChild(element);
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -974,17 +845,11 @@ function addSystemMessage(
 }
 
 
-/* =========================
-   ONLINE USER LIST
-========================= */
+/* ONLINE USERS */
 
-function updateOnlineUsers(
-    users
-) {
+function updateOnlineUsers(users) {
 
-    onlineUsers.innerHTML =
-        "";
-
+    onlineUsers.innerHTML = "";
 
     onlineCount.textContent =
         users.length === 1
@@ -992,72 +857,85 @@ function updateOnlineUsers(
             : `${users.length} people online`;
 
 
-    users.forEach(
-        function(name) {
+    users.forEach(function(name) {
 
-            const user =
-                document.createElement(
-                    "div"
-                );
+        const user =
+            document.createElement("div");
 
-            user.className =
-                "online-user";
+        user.className =
+            "online-user";
 
 
-            const dot =
-                document.createElement(
-                    "div"
-                );
+        const dot =
+            document.createElement("div");
 
-            dot.className =
-                "online-dot";
+        dot.className =
+            "online-dot";
 
 
-            const nameElement =
-                document.createElement(
-                    "span"
-                );
+        const nameElement =
+            document.createElement("span");
 
-            nameElement.textContent =
-                name;
-
-
-            if (
-                name === username
-            ) {
-
-                nameElement.textContent =
-                    name + " (you)";
-
-            }
+        nameElement.textContent =
+            name === username
+                ? name + " (you)"
+                : name;
 
 
-            user.appendChild(
-                dot
-            );
+        user.appendChild(dot);
+        user.appendChild(nameElement);
 
-            user.appendChild(
-                nameElement
-            );
+        onlineUsers.appendChild(user);
 
-
-            onlineUsers.appendChild(
-                user
-            );
-
-        }
-    );
+    });
 
 }
 
 
-/* =========================
-   COMPOSER
-========================= */
+/* TYPING DISPLAY */
 
-function setComposerEnabled(
-    enabled
-) {
+function updateTypingIndicator() {
+
+    const names =
+        Array.from(currentlyTyping);
+
+
+    if (names.length === 0) {
+
+        typingIndicator.textContent =
+            "";
+
+        return;
+    }
+
+
+    if (names.length === 1) {
+
+        typingIndicator.textContent =
+            `${names[0]} is typing...`;
+
+        return;
+    }
+
+
+    if (names.length === 2) {
+
+        typingIndicator.textContent =
+            `${names[0]} and ${names[1]} are typing...`;
+
+        return;
+    }
+
+
+    typingIndicator.textContent =
+        `${names.length} people are typing...`;
+
+}
+
+
+/* COMPOSER */
+
+function setComposerEnabled(enabled) {
 
     messageInput.disabled =
         !enabled;
@@ -1068,9 +946,30 @@ function setComposerEnabled(
 }
 
 
-/* =========================
-   CONNECT
-========================= */
+/* SEND TYPING STATUS */
+
+function sendTypingStatus(isTyping) {
+
+    if (
+        !socket ||
+        socket.readyState !==
+        WebSocket.OPEN
+    ) {
+        return;
+    }
+
+
+    socket.send(
+        JSON.stringify({
+            type: "typing",
+            typing: isTyping
+        })
+    );
+
+}
+
+
+/* CONNECT */
 
 function connect() {
 
@@ -1107,14 +1006,10 @@ function connect() {
 
             socket.send(
                 JSON.stringify({
-                    type:
-                        "join",
-                    username:
-                        username,
-                    room:
-                        room,
-                    password:
-                        password
+                    type: "join",
+                    username: username,
+                    room: room,
+                    password: password
                 })
             );
 
@@ -1146,16 +1041,13 @@ function connect() {
             /* JOINED */
 
             if (
-                data.type ===
-                "joined"
+                data.type === "joined"
             ) {
 
                 roomTitle.textContent =
                     data.room;
 
-                setComposerEnabled(
-                    true
-                );
+                setComposerEnabled(true);
 
                 messageInput.focus();
 
@@ -1174,9 +1066,7 @@ function connect() {
                     "Incorrect room password."
                 );
 
-                setComposerEnabled(
-                    false
-                );
+                setComposerEnabled(false);
 
                 chat.style.display =
                     "none";
@@ -1197,15 +1087,13 @@ function connect() {
             /* MESSAGE */
 
             if (
-                data.type ===
-                "message"
+                data.type === "message"
             ) {
 
                 addMessage(
                     data.username,
                     data.message,
-                    data.username ===
-                        username,
+                    data.username === username,
                     data.time,
                     data.id
                 );
@@ -1234,12 +1122,10 @@ function connect() {
                             ".message-text"
                         );
 
-
                     if (text) {
 
                         text.textContent =
                             data.message;
-
 
                         const label =
                             document.createElement(
@@ -1252,9 +1138,7 @@ function connect() {
                         label.textContent =
                             "(edited)";
 
-                        text.appendChild(
-                            label
-                        );
+                        text.appendChild(label);
 
                     }
 
@@ -1276,7 +1160,6 @@ function connect() {
                         `.message[data-id="${data.id}"]`
                     );
 
-
                 if (element) {
                     element.remove();
                 }
@@ -1288,8 +1171,7 @@ function connect() {
             /* SYSTEM */
 
             if (
-                data.type ===
-                "system"
+                data.type === "system"
             ) {
 
                 addSystemMessage(
@@ -1300,11 +1182,10 @@ function connect() {
             }
 
 
-            /* ONLINE USERS */
+            /* ONLINE */
 
             if (
-                data.type ===
-                "users"
+                data.type === "users"
             ) {
 
                 updateOnlineUsers(
@@ -1315,11 +1196,37 @@ function connect() {
             }
 
 
+            /* TYPING */
+
+            if (
+                data.type === "typing"
+            ) {
+
+                if (data.typing) {
+
+                    currentlyTyping.add(
+                        data.username
+                    );
+
+                } else {
+
+                    currentlyTyping.delete(
+                        data.username
+                    );
+
+                }
+
+
+                updateTypingIndicator();
+
+                return;
+            }
+
+
             /* ERROR */
 
             if (
-                data.type ===
-                "error"
+                data.type === "error"
             ) {
 
                 addSystemMessage(
@@ -1336,10 +1243,7 @@ function connect() {
         "close",
         function() {
 
-            setComposerEnabled(
-                false
-            );
-
+            setComposerEnabled(false);
 
             setStatus(
                 "disconnected",
@@ -1352,9 +1256,7 @@ function connect() {
 }
 
 
-/* =========================
-   JOIN
-========================= */
+/* JOIN */
 
 function joinChat() {
 
@@ -1396,9 +1298,7 @@ function joinChat() {
         {},
         "",
         "?room=" +
-        encodeURIComponent(
-            room
-        )
+        encodeURIComponent(room)
     );
 
 
@@ -1416,28 +1316,26 @@ function joinChat() {
     messages.innerHTML =
         "";
 
-
     onlineUsers.innerHTML =
         "";
-
 
     onlineCount.textContent =
         "0 people online";
 
+    typingIndicator.textContent =
+        "";
 
-    setComposerEnabled(
-        false
-    );
+    currentlyTyping.clear();
 
+
+    setComposerEnabled(false);
 
     connect();
 
 }
 
 
-/* =========================
-   SEND MESSAGE
-========================= */
+/* SEND MESSAGE */
 
 function sendMessage() {
 
@@ -1456,20 +1354,17 @@ function sendMessage() {
         WebSocket.OPEN
     ) {
 
-        addSystemMessage(
-            "You are not connected."
-        );
-
         return;
     }
 
 
+    sendTypingStatus(false);
+
+
     socket.send(
         JSON.stringify({
-            type:
-                "message",
-            message:
-                message
+            type: "message",
+            message: message
         })
     );
 
@@ -1482,9 +1377,7 @@ function sendMessage() {
 }
 
 
-/* =========================
-   BUTTONS
-========================= */
+/* BUTTONS */
 
 joinButton.addEventListener(
     "click",
@@ -1498,14 +1391,13 @@ sendButton.addEventListener(
 );
 
 
+/* ENTER TO JOIN */
+
 usernameInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (
-            event.key ===
-            "Enter"
-        ) {
+        if (event.key === "Enter") {
             joinChat();
         }
 
@@ -1517,10 +1409,7 @@ roomInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (
-            event.key ===
-            "Enter"
-        ) {
+        if (event.key === "Enter") {
             joinChat();
         }
 
@@ -1532,10 +1421,7 @@ passwordInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (
-            event.key ===
-            "Enter"
-        ) {
+        if (event.key === "Enter") {
             joinChat();
         }
 
@@ -1543,14 +1429,41 @@ passwordInput.addEventListener(
 );
 
 
+/* TYPING */
+
+messageInput.addEventListener(
+    "input",
+    function() {
+
+        sendTypingStatus(true);
+
+
+        clearTimeout(
+            typingTimer
+        );
+
+
+        typingTimer =
+            setTimeout(
+                function() {
+
+                    sendTypingStatus(false);
+
+                },
+                1200
+            );
+
+    }
+);
+
+
+/* ENTER TO SEND */
+
 messageInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (
-            event.key ===
-            "Enter"
-        ) {
+        if (event.key === "Enter") {
 
             event.preventDefault();
 
@@ -1562,9 +1475,7 @@ messageInput.addEventListener(
 );
 
 
-/* =========================
-   COPY LINK
-========================= */
+/* COPY LINK */
 
 copyButton.addEventListener(
     "click",
