@@ -1,11 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
 <title>LinkChat</title>
 
 <style>
+
 * {
     box-sizing: border-box;
 }
@@ -27,496 +34,995 @@ button {
     cursor: pointer;
 }
 
-/* LOGIN */
+/* =========================================================
+   LOGIN
+========================================================= */
 
 #login {
+
     height: 100vh;
+
     display: flex;
+
     align-items: center;
+
     justify-content: center;
+
     padding: 20px;
 }
 
 .login-box {
+
     width: 100%;
+
     max-width: 430px;
+
     background: #1e293b;
+
     padding: 35px;
+
     border-radius: 18px;
 }
 
 .logo {
+
     font-size: 32px;
+
     font-weight: bold;
 }
 
 .subtitle {
+
     color: #94a3b8;
-    margin: 8px 0 25px;
+
+    margin:
+        8px 0 25px;
 }
 
 label {
+
     display: block;
-    margin: 16px 0 7px;
+
+    margin:
+        16px 0 7px;
 }
 
 input {
+
     width: 100%;
+
     padding: 13px;
-    border: 1px solid #475569;
+
+    border:
+        1px solid #475569;
+
     border-radius: 10px;
+
     background: #0f172a;
+
     color: white;
+
     outline: none;
 }
 
 input:focus {
-    border-color: #60a5fa;
+
+    border-color:
+        #60a5fa;
 }
 
 .password-help {
-    color: #94a3b8;
-    font-size: 12px;
-    margin-top: 6px;
+
+    color:
+        #94a3b8;
+
+    font-size:
+        12px;
+
+    margin-top:
+        6px;
 }
 
 #joinButton {
+
     width: 100%;
+
     margin-top: 25px;
+
     padding: 13px;
+
     border: 0;
+
     border-radius: 10px;
-    background: #3b82f6;
+
+    background:
+        #3b82f6;
+
     color: white;
+
     font-weight: bold;
 }
 
 #joinButton:hover {
-    background: #2563eb;
+
+    background:
+        #2563eb;
 }
 
-/* CHAT */
+/* =========================================================
+   CHAT
+========================================================= */
 
 #chat {
+
     display: none;
+
     height: 100vh;
+
     flex-direction: column;
 }
 
-/* HEADER */
+/* =========================================================
+   HEADER
+========================================================= */
 
 header {
+
     height: 72px;
+
     flex-shrink: 0;
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
+
+    background:
+        #1e293b;
+
+    border-bottom:
+        1px solid #334155;
+
     display: flex;
+
     align-items: center;
-    justify-content: space-between;
-    padding: 0 18px;
+
+    justify-content:
+        space-between;
+
+    padding:
+        0 18px;
 }
 
 .chat-title {
-    font-size: 20px;
-    font-weight: bold;
+
+    font-size:
+        20px;
+
+    font-weight:
+        bold;
 }
 
 .status {
-    font-size: 12px;
-    margin-top: 4px;
+
+    font-size:
+        12px;
+
+    margin-top:
+        4px;
 }
 
 .connected {
-    color: #4ade80;
+
+    color:
+        #4ade80;
 }
 
 .disconnected {
-    color: #f87171;
+
+    color:
+        #f87171;
 }
 
 .connecting {
-    color: #facc15;
+
+    color:
+        #facc15;
 }
 
 #copyButton {
+
     border: 0;
-    background: #334155;
+
+    background:
+        #334155;
+
     color: white;
-    padding: 10px 14px;
-    border-radius: 9px;
+
+    padding:
+        10px 14px;
+
+    border-radius:
+        9px;
 }
 
 #copyButton:hover {
-    background: #475569;
+
+    background:
+        #475569;
 }
 
-/* MAIN */
+/* =========================================================
+   MAIN
+========================================================= */
 
 .chat-area {
+
     flex: 1;
+
     display: flex;
+
     min-height: 0;
 }
 
-/* MESSAGES */
+/* =========================================================
+   MESSAGES
+========================================================= */
 
 #messages {
+
     flex: 1;
+
     overflow-y: auto;
+
     padding: 25px;
 }
 
 .message {
-    max-width: 75%;
-    background: #1e293b;
-    padding: 11px 14px;
-    border-radius: 14px;
-    margin-bottom: 15px;
+
+    max-width:
+        75%;
+
+    background:
+        #1e293b;
+
+    padding:
+        11px 14px;
+
+    border-radius:
+        14px;
+
+    margin-bottom:
+        15px;
 }
 
 .message.mine {
-    margin-left: auto;
-    background: #2563eb;
+
+    margin-left:
+        auto;
+
+    background:
+        #2563eb;
 }
 
 .name {
-    font-size: 12px;
-    color: #93c5fd;
-    font-weight: bold;
-    margin-bottom: 5px;
+
+    font-size:
+        12px;
+
+    color:
+        #93c5fd;
+
+    font-weight:
+        bold;
+
+    margin-bottom:
+        5px;
 }
 
 .mine .name {
-    color: #dbeafe;
+
+    color:
+        #dbeafe;
 }
 
 .message-text {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
+
+    white-space:
+        pre-wrap;
+
+    overflow-wrap:
+        anywhere;
 }
 
 .message-time {
-    font-size: 10px;
-    color: #94a3b8;
-    margin-top: 6px;
+
+    font-size:
+        10px;
+
+    color:
+        #94a3b8;
+
+    margin-top:
+        6px;
 }
 
 .mine .message-time {
-    color: #bfdbfe;
+
+    color:
+        #bfdbfe;
 }
 
-/* REPLY */
+/* =========================================================
+   REPLY
+========================================================= */
 
 .reply-preview {
-    background: rgba(0,0,0,.18);
-    border-left: 3px solid #93c5fd;
-    padding: 7px 9px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    font-size: 12px;
+
+    background:
+        rgba(0,0,0,.18);
+
+    border-left:
+        3px solid #93c5fd;
+
+    padding:
+        7px 9px;
+
+    border-radius:
+        6px;
+
+    margin-bottom:
+        8px;
+
+    font-size:
+        12px;
 }
 
 .reply-name {
-    font-weight: bold;
-    margin-bottom: 3px;
+
+    font-weight:
+        bold;
+
+    margin-bottom:
+        3px;
 }
 
 .reply-text {
-    color: #cbd5e1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+
+    color:
+        #cbd5e1;
+
+    white-space:
+        nowrap;
+
+    overflow:
+        hidden;
+
+    text-overflow:
+        ellipsis;
 }
 
-/* ACTIONS */
+/* =========================================================
+   ACTIONS
+========================================================= */
 
 .message-actions {
-    display: flex;
-    gap: 6px;
-    margin-top: 8px;
-    flex-wrap: wrap;
+
+    display:
+        flex;
+
+    gap:
+        6px;
+
+    margin-top:
+        8px;
+
+    flex-wrap:
+        wrap;
 }
 
 .message-actions button {
-    border: 0;
-    border-radius: 6px;
-    padding: 5px 8px;
-    font-size: 11px;
-    color: white;
-    background: rgba(255,255,255,.15);
+
+    border:
+        0;
+
+    border-radius:
+        6px;
+
+    padding:
+        5px 8px;
+
+    font-size:
+        11px;
+
+    color:
+        white;
+
+    background:
+        rgba(255,255,255,.15);
 }
 
 .message-actions button:hover {
-    background: rgba(255,255,255,.25);
+
+    background:
+        rgba(255,255,255,.25);
 }
 
-/* REACTIONS */
+/* =========================================================
+   REACTIONS
+========================================================= */
 
 .reactions {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-top: 8px;
+
+    display:
+        flex;
+
+    gap:
+        5px;
+
+    flex-wrap:
+        wrap;
+
+    margin-top:
+        8px;
 }
 
 .reaction-button {
-    border: 1px solid rgba(255,255,255,.18);
-    background: rgba(0,0,0,.15);
-    color: white;
-    border-radius: 14px;
-    padding: 4px 8px;
+
+    border:
+        1px solid rgba(255,255,255,.18);
+
+    background:
+        rgba(0,0,0,.15);
+
+    color:
+        white;
+
+    border-radius:
+        14px;
+
+    padding:
+        4px 8px;
 }
 
 .reaction-picker {
-    display: flex;
-    gap: 4px;
-    margin-top: 7px;
-    flex-wrap: wrap;
+
+    display:
+        flex;
+
+    gap:
+        4px;
+
+    margin-top:
+        7px;
+
+    flex-wrap:
+        wrap;
 }
 
 .reaction-picker button {
-    border: 0;
-    background: #334155;
-    color: white;
-    border-radius: 7px;
-    padding: 5px 7px;
+
+    border:
+        0;
+
+    background:
+        #334155;
+
+    color:
+        white;
+
+    border-radius:
+        7px;
+
+    padding:
+        5px 7px;
 }
 
-/* SYSTEM */
+/* =========================================================
+   SYSTEM
+========================================================= */
 
 .system {
-    text-align: center;
-    color: #64748b;
-    font-size: 13px;
-    margin: 12px;
+
+    text-align:
+        center;
+
+    color:
+        #64748b;
+
+    font-size:
+        13px;
+
+    margin:
+        12px;
 }
 
-/* SIDEBAR */
+/* =========================================================
+   SIDEBAR
+========================================================= */
 
 #onlinePanel {
-    width: 280px;
-    flex-shrink: 0;
-    background: #111827;
-    border-left: 1px solid #334155;
-    padding: 18px;
-    overflow-y: auto;
+
+    width:
+        300px;
+
+    flex-shrink:
+        0;
+
+    background:
+        #111827;
+
+    border-left:
+        1px solid #334155;
+
+    padding:
+        18px;
+
+    overflow-y:
+        auto;
 }
 
 .online-title {
-    font-size: 15px;
-    font-weight: bold;
-    margin-bottom: 5px;
+
+    font-size:
+        15px;
+
+    font-weight:
+        bold;
+
+    margin-bottom:
+        5px;
 }
 
 .online-count {
-    color: #94a3b8;
-    font-size: 12px;
-    margin-bottom: 15px;
+
+    color:
+        #94a3b8;
+
+    font-size:
+        12px;
+
+    margin-bottom:
+        15px;
 }
 
-/* OWNER CONTROLS */
+/* =========================================================
+   OWNER CONTROLS
+========================================================= */
 
 #ownerControls {
-    display: none;
-    margin-bottom: 20px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid #334155;
+
+    display:
+        none;
+
+    margin-bottom:
+        20px;
+
+    padding-bottom:
+        18px;
+
+    border-bottom:
+        1px solid #334155;
 }
 
 .owner-title {
-    color: #facc15;
-    font-weight: bold;
-    margin-bottom: 12px;
+
+    color:
+        #facc15;
+
+    font-weight:
+        bold;
+
+    margin-bottom:
+        12px;
 }
 
 .owner-help {
-    color: #94a3b8;
-    font-size: 11px;
-    margin-bottom: 12px;
+
+    color:
+        #94a3b8;
+
+    font-size:
+        11px;
+
+    margin-bottom:
+        12px;
 }
 
-#changePasswordButton {
-    width: 100%;
-    margin-bottom: 12px;
-    padding: 9px;
-    border: 0;
-    border-radius: 8px;
-    background: #7c3aed;
-    color: white;
-    font-weight: bold;
+.owner-button {
+
+    width:
+        100%;
+
+    margin-bottom:
+        8px;
+
+    padding:
+        9px;
+
+    border:
+        0;
+
+    border-radius:
+        8px;
+
+    color:
+        white;
+
+    font-weight:
+        bold;
 }
 
-#changePasswordButton:hover {
-    background: #6d28d9;
+.password-button {
+
+    background:
+        #7c3aed;
+}
+
+.rename-button {
+
+    background:
+        #2563eb;
+}
+
+.transfer-button {
+
+    background:
+        #0891b2;
+}
+
+.lock-button {
+
+    background:
+        #ca8a04;
+}
+
+.delete-button {
+
+    background:
+        #991b1b;
+}
+
+.owner-button:hover {
+
+    filter:
+        brightness(1.15);
 }
 
 .owner-user {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 0;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        8px;
+
+    padding:
+        8px 0;
 }
 
 .owner-user-name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+
+    min-width:
+        0;
+
+    overflow:
+        hidden;
+
+    text-overflow:
+        ellipsis;
+
+    white-space:
+        nowrap;
 }
 
 .kick-button {
-    flex-shrink: 0;
-    border: 0;
-    background: #991b1b;
-    color: white;
-    padding: 5px 8px;
-    border-radius: 6px;
-    font-size: 11px;
+
+    flex-shrink:
+        0;
+
+    border:
+        0;
+
+    background:
+        #991b1b;
+
+    color:
+        white;
+
+    padding:
+        5px 8px;
+
+    border-radius:
+        6px;
+
+    font-size:
+        11px;
 }
 
 .kick-button:hover {
-    background: #dc2626;
+
+    background:
+        #dc2626;
 }
 
-/* ONLINE USERS */
+/* =========================================================
+   ONLINE USERS
+========================================================= */
 
 .online-user {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 9px 5px;
-    font-size: 14px;
+
+    display:
+        flex;
+
+    align-items:
+        center;
+
+    gap:
+        9px;
+
+    padding:
+        9px 5px;
+
+    font-size:
+        14px;
 }
 
 .online-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #4ade80;
-    flex-shrink: 0;
+
+    width:
+        9px;
+
+    height:
+        9px;
+
+    border-radius:
+        50%;
+
+    background:
+        #4ade80;
+
+    flex-shrink:
+        0;
 }
 
 .owner-badge {
-    display: inline-block;
-    margin-left: 5px;
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: #854d0e;
-    color: #fef08a;
-    font-size: 10px;
-    font-weight: bold;
+
+    display:
+        inline-block;
+
+    margin-left:
+        5px;
+
+    padding:
+        2px 6px;
+
+    border-radius:
+        6px;
+
+    background:
+        #854d0e;
+
+    color:
+        #fef08a;
+
+    font-size:
+        10px;
+
+    font-weight:
+        bold;
 }
 
 .you-badge {
-    color: #93c5fd;
-    font-size: 11px;
+
+    color:
+        #93c5fd;
+
+    font-size:
+        11px;
 }
 
-/* TYPING */
+/* =========================================================
+   TYPING
+========================================================= */
 
 #typingIndicator {
-    min-height: 22px;
-    padding: 0 20px;
-    color: #94a3b8;
-    font-size: 12px;
-    background: #1e293b;
+
+    min-height:
+        22px;
+
+    padding:
+        0 20px;
+
+    color:
+        #94a3b8;
+
+    font-size:
+        12px;
+
+    background:
+        #1e293b;
 }
 
-/* REPLY BAR */
+/* =========================================================
+   REPLY BAR
+========================================================= */
 
 #replyBar {
-    display: none;
-    background: #111827;
-    border-top: 1px solid #334155;
-    padding: 9px 15px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+
+    display:
+        none;
+
+    background:
+        #111827;
+
+    border-top:
+        1px solid #334155;
+
+    padding:
+        9px 15px;
+
+    align-items:
+        center;
+
+    justify-content:
+        space-between;
+
+    gap:
+        10px;
 }
 
 .reply-bar-text {
-    min-width: 0;
-    flex: 1;
+
+    min-width:
+        0;
+
+    flex:
+        1;
 }
 
 .reply-bar-title {
-    font-size: 12px;
-    color: #60a5fa;
-    font-weight: bold;
+
+    font-size:
+        12px;
+
+    color:
+        #60a5fa;
+
+    font-weight:
+        bold;
 }
 
 .reply-bar-message {
-    color: #cbd5e1;
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+
+    color:
+        #cbd5e1;
+
+    font-size:
+        12px;
+
+    white-space:
+        nowrap;
+
+    overflow:
+        hidden;
+
+    text-overflow:
+        ellipsis;
 }
 
 #cancelReply {
-    border: 0;
-    background: #334155;
-    color: white;
-    border-radius: 7px;
-    padding: 6px 10px;
+
+    border:
+        0;
+
+    background:
+        #334155;
+
+    color:
+        white;
+
+    border-radius:
+        7px;
+
+    padding:
+        6px 10px;
 }
 
-/* COMPOSER */
+/* =========================================================
+   COMPOSER
+========================================================= */
 
 #composer {
-    display: flex;
-    gap: 10px;
-    padding: 15px;
-    background: #1e293b;
-    border-top: 1px solid #334155;
+
+    display:
+        flex;
+
+    gap:
+        10px;
+
+    padding:
+        15px;
+
+    background:
+        #1e293b;
+
+    border-top:
+        1px solid #334155;
 }
 
 #sendButton {
-    border: 0;
-    border-radius: 10px;
-    padding: 13px 18px;
-    background: #3b82f6;
-    color: white;
-    font-weight: bold;
+
+    border:
+        0;
+
+    border-radius:
+        10px;
+
+    padding:
+        13px 18px;
+
+    background:
+        #3b82f6;
+
+    color:
+        white;
+
+    font-weight:
+        bold;
 }
 
 #sendButton:disabled {
-    opacity: .5;
+
+    opacity:
+        .5;
 }
 
-/* MOBILE */
+/* =========================================================
+   MOBILE
+========================================================= */
 
 @media (max-width: 700px) {
 
     #onlinePanel {
-        display: none;
+        display:
+            none;
     }
 
     .message {
-        max-width: 88%;
+        max-width:
+            88%;
     }
 
     #messages {
-        padding: 15px;
+        padding:
+            15px;
     }
 
     .chat-title {
-        font-size: 17px;
+        font-size:
+            17px;
     }
 }
+
 </style>
+
 </head>
 
 <body>
 
-<!-- LOGIN -->
+<!-- =======================================================
+     LOGIN
+======================================================= -->
 
 <div id="login">
 
     <div class="login-box">
 
-        <div class="logo">💬 LinkChat</div>
+        <div class="logo">
+            💬 LinkChat
+        </div>
 
         <div class="subtitle">
             Create a room and share the link.
@@ -563,7 +1069,9 @@ header {
 </div>
 
 
-<!-- CHAT -->
+<!-- =======================================================
+     CHAT
+======================================================= -->
 
 <div id="chat">
 
@@ -575,7 +1083,10 @@ header {
                 💬 <span id="roomTitle"></span>
             </div>
 
-            <div id="status" class="status connecting">
+            <div
+                id="status"
+                class="status connecting"
+            >
                 🟡 Connecting...
             </div>
 
@@ -593,6 +1104,10 @@ header {
         <div id="messages"></div>
 
 
+        <!-- =================================================
+             SIDEBAR
+        ================================================== -->
+
         <div id="onlinePanel">
 
             <!-- OWNER CONTROLS -->
@@ -600,16 +1115,59 @@ header {
             <div id="ownerControls">
 
                 <div class="owner-title">
-                    👑 Owner Controls
+                    👑 Room Owner
                 </div>
 
                 <div class="owner-help">
-                    You are the room owner.
+                    You control this room.
                 </div>
 
-                <button id="changePasswordButton">
-                    🔒 Change Room Password
+                <button
+                    id="changePasswordButton"
+                    class="owner-button password-button"
+                >
+                    🔒 Change Password
                 </button>
+
+                <button
+                    id="renameRoomButton"
+                    class="owner-button rename-button"
+                >
+                    ✏️ Rename Room
+                </button>
+
+                <button
+                    id="transferOwnerButton"
+                    class="owner-button transfer-button"
+                >
+                    👑 Transfer Ownership
+                </button>
+
+                <button
+                    id="lockRoomButton"
+                    class="owner-button lock-button"
+                >
+                    🔐 Lock Room
+                </button>
+
+                <button
+                    id="deleteRoomButton"
+                    class="owner-button delete-button"
+                >
+                    🗑️ Delete Room
+                </button>
+
+                <div
+                    style="
+                        margin-top:15px;
+                        margin-bottom:8px;
+                        font-size:12px;
+                        color:#94a3b8;
+                        font-weight:bold;
+                    "
+                >
+                    Manage Members
+                </div>
 
                 <div id="ownerUsers"></div>
 
@@ -620,7 +1178,10 @@ header {
                 🟢 Online
             </div>
 
-            <div id="onlineCount" class="online-count">
+            <div
+                id="onlineCount"
+                class="online-count"
+            >
                 0 people online
             </div>
 
@@ -634,15 +1195,21 @@ header {
     <div id="typingIndicator"></div>
 
 
+    <!-- REPLY -->
+
     <div id="replyBar">
 
         <div class="reply-bar-text">
 
             <div class="reply-bar-title">
-                ↩️ Replying to <span id="replyBarName"></span>
+                ↩️ Replying to
+                <span id="replyBarName"></span>
             </div>
 
-            <div id="replyBarMessage" class="reply-bar-message"></div>
+            <div
+                id="replyBarMessage"
+                class="reply-bar-message"
+            ></div>
 
         </div>
 
@@ -652,6 +1219,8 @@ header {
 
     </div>
 
+
+    <!-- COMPOSER -->
 
     <div id="composer">
 
@@ -663,7 +1232,10 @@ header {
             disabled
         >
 
-        <button id="sendButton" disabled>
+        <button
+            id="sendButton"
+            disabled
+        >
             Send
         </button>
 
@@ -673,6 +1245,10 @@ header {
 
 
 <script>
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
 
 const login =
     document.getElementById("login");
@@ -722,43 +1298,64 @@ const ownerControls =
 const ownerUsers =
     document.getElementById("ownerUsers");
 
-const changePasswordButton =
-    document.getElementById(
-        "changePasswordButton"
-    );
-
 const typingIndicator =
-    document.getElementById(
-        "typingIndicator"
-    );
+    document.getElementById("typingIndicator");
 
 const replyBar =
     document.getElementById("replyBar");
 
 const replyBarName =
-    document.getElementById(
-        "replyBarName"
-    );
+    document.getElementById("replyBarName");
 
 const replyBarMessage =
-    document.getElementById(
-        "replyBarMessage"
-    );
+    document.getElementById("replyBarMessage");
 
 const cancelReply =
+    document.getElementById("cancelReply");
+
+const changePasswordButton =
     document.getElementById(
-        "cancelReply"
+        "changePasswordButton"
     );
 
+const renameRoomButton =
+    document.getElementById(
+        "renameRoomButton"
+    );
+
+const transferOwnerButton =
+    document.getElementById(
+        "transferOwnerButton"
+    );
+
+const lockRoomButton =
+    document.getElementById(
+        "lockRoomButton"
+    );
+
+const deleteRoomButton =
+    document.getElementById(
+        "deleteRoomButton"
+    );
+
+
+/* =========================================================
+   STATE
+========================================================= */
 
 let socket = null;
 
 let username = "";
+
 let room = "";
+
 let password = "";
 
 let ownerUsername = "";
+
 let isOwner = false;
+
+let roomLocked = false;
 
 let onlineUserList = [];
 
@@ -770,9 +1367,9 @@ let currentlyTyping =
 let replyTo = null;
 
 
-/* =========================
+/* =========================================================
    URL ROOM
-========================= */
+========================================================= */
 
 const params =
     new URLSearchParams(
@@ -783,13 +1380,15 @@ const urlRoom =
     params.get("room");
 
 if (urlRoom) {
-    roomInput.value = urlRoom;
+
+    roomInput.value =
+        urlRoom;
 }
 
 
-/* =========================
+/* =========================================================
    STATUS
-========================= */
+========================================================= */
 
 function setStatus(
     type,
@@ -804,9 +1403,9 @@ function setStatus(
 }
 
 
-/* =========================
+/* =========================================================
    TIME
-========================= */
+========================================================= */
 
 function formatTime(time) {
 
@@ -830,8 +1429,11 @@ function formatTime(time) {
             date.toLocaleTimeString(
                 [],
                 {
-                    hour: "numeric",
-                    minute: "2-digit"
+                    hour:
+                        "numeric",
+
+                    minute:
+                        "2-digit"
                 }
             )
         );
@@ -841,26 +1443,34 @@ function formatTime(time) {
         date.toLocaleDateString(
             [],
             {
-                month: "short",
-                day: "numeric",
-                year: "numeric"
+                month:
+                    "short",
+
+                day:
+                    "numeric",
+
+                year:
+                    "numeric"
             }
         ) +
         " at " +
         date.toLocaleTimeString(
             [],
             {
-                hour: "numeric",
-                minute: "2-digit"
+                hour:
+                    "numeric",
+
+                minute:
+                    "2-digit"
             }
         )
     );
 }
 
 
-/* =========================
+/* =========================================================
    MESSAGE
-========================= */
+========================================================= */
 
 function addMessage(
     name,
@@ -879,7 +1489,10 @@ function addMessage(
         "message";
 
     if (mine) {
-        box.classList.add("mine");
+
+        box.classList.add(
+            "mine"
+        );
     }
 
     box.dataset.id =
@@ -951,7 +1564,9 @@ function addMessage(
 
 
     const nameElement =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     nameElement.className =
         "name";
@@ -1063,12 +1678,12 @@ function addMessage(
                 const newMessage =
                     prompt(
                         "Edit your message:",
-                        messageElement
-                            .textContent
+                        messageElement.textContent
                     );
 
                 if (
-                    newMessage === null
+                    newMessage ===
+                    null
                 ) {
                     return;
                 }
@@ -1081,9 +1696,14 @@ function addMessage(
                 }
 
                 sendSocket({
-                    type: "edit",
-                    id: Number(id),
-                    message: trimmed
+                    type:
+                        "edit",
+
+                    id:
+                        Number(id),
+
+                    message:
+                        trimmed
                 });
             };
 
@@ -1108,8 +1728,11 @@ function addMessage(
                 }
 
                 sendSocket({
-                    type: "delete",
-                    id: Number(id)
+                    type:
+                        "delete",
+
+                    id:
+                        Number(id)
                 });
             };
 
@@ -1202,9 +1825,9 @@ function addMessage(
 }
 
 
-/* =========================
+/* =========================================================
    REACTIONS
-========================= */
+========================================================= */
 
 function renderReactions(
     container,
@@ -1270,16 +1893,21 @@ function sendReaction(
 ) {
 
     sendSocket({
-        type: "reaction",
-        id: Number(messageId),
-        reaction: reaction
+        type:
+            "reaction",
+
+        id:
+            Number(messageId),
+
+        reaction:
+            reaction
     });
 }
 
 
-/* =========================
+/* =========================================================
    SOCKET SEND
-========================= */
+========================================================= */
 
 function sendSocket(data) {
 
@@ -1288,6 +1916,7 @@ function sendSocket(data) {
         socket.readyState !==
             WebSocket.OPEN
     ) {
+
         return false;
     }
 
@@ -1299,9 +1928,9 @@ function sendSocket(data) {
 }
 
 
-/* =========================
+/* =========================================================
    REPLY
-========================= */
+========================================================= */
 
 function startReply(
     id,
@@ -1327,7 +1956,8 @@ function startReply(
 
 function cancelReplyMode() {
 
-    replyTo = null;
+    replyTo =
+        null;
 
     replyBar.style.display =
         "none";
@@ -1346,9 +1976,9 @@ cancelReply.addEventListener(
 );
 
 
-/* =========================
+/* =========================================================
    SYSTEM MESSAGE
-========================= */
+========================================================= */
 
 function addSystemMessage(
     text
@@ -1374,9 +2004,9 @@ function addSystemMessage(
 }
 
 
-/* =========================
+/* =========================================================
    OWNER CONTROLS
-========================= */
+========================================================= */
 
 function updateOwnerControls() {
 
@@ -1391,9 +2021,15 @@ function updateOwnerControls() {
         return;
     }
 
-
     ownerControls.style.display =
         "block";
+
+
+    lockRoomButton.textContent =
+        roomLocked
+            ? "🔓 Unlock Room"
+            : "🔐 Lock Room";
+
 
     ownerUsers.innerHTML =
         "";
@@ -1407,7 +2043,6 @@ function updateOwnerControls() {
             ) {
                 return;
             }
-
 
             const row =
                 document.createElement(
@@ -1441,22 +2076,23 @@ function updateOwnerControls() {
             kickButton.textContent =
                 "👢 Kick";
 
-
             kickButton.onclick =
                 () => {
 
                     if (
-                        !confirm(
+                        confirm(
                             `Kick ${name} from this room?`
                         )
                     ) {
-                        return;
-                    }
 
-                    sendSocket({
-                        type: "kick",
-                        username: name
-                    });
+                        sendSocket({
+                            type:
+                                "kick",
+
+                            username:
+                                name
+                        });
+                    }
                 };
 
 
@@ -1503,9 +2139,9 @@ function updateOwnerControls() {
 }
 
 
-/* =========================
+/* =========================================================
    ONLINE USERS
-========================= */
+========================================================= */
 
 function updateOnlineUsers(
     users
@@ -1599,7 +2235,10 @@ function updateOnlineUsers(
             }
 
 
-            user.appendChild(dot);
+            user.appendChild(
+                dot
+            );
+
             user.appendChild(
                 nameElement
             );
@@ -1615,9 +2254,9 @@ function updateOnlineUsers(
 }
 
 
-/* =========================
+/* =========================================================
    TYPING
-========================= */
+========================================================= */
 
 function updateTypingIndicator() {
 
@@ -1670,15 +2309,18 @@ function sendTypingStatus(
 ) {
 
     sendSocket({
-        type: "typing",
-        typing: isTyping
+        type:
+            "typing",
+
+        typing:
+            isTyping
     });
 }
 
 
-/* =========================
+/* =========================================================
    COMPOSER
-========================= */
+========================================================= */
 
 function setComposerEnabled(
     enabled
@@ -1692,9 +2334,9 @@ function setComposerEnabled(
 }
 
 
-/* =========================
+/* =========================================================
    CONNECT
-========================= */
+========================================================= */
 
 function connect() {
 
@@ -1730,10 +2372,17 @@ function connect() {
 
 
             sendSocket({
-                type: "join",
-                username: username,
-                room: room,
-                password: password
+                type:
+                    "join",
+
+                username:
+                    username,
+
+                room:
+                    room,
+
+                password:
+                    password
             });
         }
     );
@@ -1761,10 +2410,14 @@ function connect() {
             /* JOINED */
 
             if (
-                data.type === "joined"
+                data.type ===
+                "joined"
             ) {
 
                 roomTitle.textContent =
+                    data.room;
+
+                room =
                     data.room;
 
                 ownerUsername =
@@ -1773,6 +2426,11 @@ function connect() {
                 isOwner =
                     Boolean(
                         data.isOwner
+                    );
+
+                roomLocked =
+                    Boolean(
+                        data.locked
                     );
 
 
@@ -1788,34 +2446,19 @@ function connect() {
             }
 
 
-            /* PASSWORD CHANGED */
+            /* OWNER */
 
             if (
                 data.type ===
-                "passwordChanged"
-            ) {
-
-                alert(
-                    data.message ||
-                    "Room password changed successfully."
-                );
-
-                return;
-            }
-
-
-            /* OWNER UPDATE */
-
-            if (
-                data.type === "owner"
+                "owner"
             ) {
 
                 ownerUsername =
                     data.owner || "";
 
                 isOwner =
-                    username ===
-                    ownerUsername;
+                    username.toLowerCase() ===
+                    ownerUsername.toLowerCase();
 
 
                 updateOnlineUsers(
@@ -1857,10 +2500,41 @@ function connect() {
             }
 
 
+            /* LOCKED */
+
+            if (
+                data.type ===
+                "roomLocked"
+            ) {
+
+                alert(
+                    data.message ||
+                    "This room is locked."
+                );
+
+                if (socket) {
+                    socket.close();
+                }
+
+                chat.style.display =
+                    "none";
+
+                login.style.display =
+                    "flex";
+
+                setComposerEnabled(
+                    false
+                );
+
+                return;
+            }
+
+
             /* KICKED */
 
             if (
-                data.type === "kicked"
+                data.type ===
+                "kicked"
             ) {
 
                 alert(
@@ -1886,16 +2560,107 @@ function connect() {
             }
 
 
+            /* ROOM RENAMED */
+
+            if (
+                data.type ===
+                "roomRenamed"
+            ) {
+
+                room =
+                    data.newName;
+
+                roomTitle.textContent =
+                    data.newName;
+
+                history.replaceState(
+                    {},
+                    "",
+                    "?room=" +
+                    encodeURIComponent(
+                        data.newName
+                    )
+                );
+
+                return;
+            }
+
+
+            /* LOCK CHANGED */
+
+            if (
+                data.type ===
+                "roomLockChanged"
+            ) {
+
+                roomLocked =
+                    Boolean(
+                        data.locked
+                    );
+
+                updateOwnerControls();
+
+                return;
+            }
+
+
+            /* ROOM DELETED */
+
+            if (
+                data.type ===
+                "roomDeleted"
+            ) {
+
+                alert(
+                    data.message ||
+                    "The room was deleted."
+                );
+
+                if (socket) {
+                    socket.close();
+                }
+
+                chat.style.display =
+                    "none";
+
+                login.style.display =
+                    "flex";
+
+                setComposerEnabled(
+                    false
+                );
+
+                return;
+            }
+
+
+            /* PASSWORD CHANGED */
+
+            if (
+                data.type ===
+                "passwordChanged"
+            ) {
+
+                alert(
+                    data.message
+                );
+
+                return;
+            }
+
+
             /* MESSAGE */
 
             if (
-                data.type === "message"
+                data.type ===
+                "message"
             ) {
 
                 addMessage(
                     data.username,
                     data.message,
-                    data.username === username,
+                    data.username ===
+                        username,
                     data.time,
                     data.id,
                     data.replyTo,
@@ -1994,7 +2759,8 @@ function connect() {
             /* SYSTEM */
 
             if (
-                data.type === "system"
+                data.type ===
+                "system"
             ) {
 
                 addSystemMessage(
@@ -2008,7 +2774,8 @@ function connect() {
             /* USERS */
 
             if (
-                data.type === "users"
+                data.type ===
+                "users"
             ) {
 
                 updateOnlineUsers(
@@ -2022,10 +2789,13 @@ function connect() {
             /* TYPING */
 
             if (
-                data.type === "typing"
+                data.type ===
+                "typing"
             ) {
 
-                if (data.typing) {
+                if (
+                    data.typing
+                ) {
 
                     currentlyTyping.add(
                         data.username
@@ -2047,7 +2817,8 @@ function connect() {
             /* ERROR */
 
             if (
-                data.type === "error"
+                data.type ===
+                "error"
             ) {
 
                 alert(
@@ -2077,9 +2848,9 @@ function connect() {
 }
 
 
-/* =========================
+/* =========================================================
    JOIN
-========================= */
+========================================================= */
 
 function joinChat() {
 
@@ -2121,7 +2892,9 @@ function joinChat() {
         {},
         "",
         "?room=" +
-        encodeURIComponent(room)
+        encodeURIComponent(
+            room
+        )
     );
 
 
@@ -2145,12 +2918,16 @@ function joinChat() {
     ownerUsers.innerHTML =
         "";
 
-    onlineUserList = [];
+    onlineUserList =
+        [];
 
     ownerUsername =
         "";
 
     isOwner =
+        false;
+
+    roomLocked =
         false;
 
     currentlyTyping.clear();
@@ -2167,9 +2944,9 @@ function joinChat() {
 }
 
 
-/* =========================
+/* =========================================================
    SEND
-========================= */
+========================================================= */
 
 function sendMessage() {
 
@@ -2184,11 +2961,17 @@ function sendMessage() {
 
     if (
         !sendSocket({
-            type: "message",
-            message: message,
-            replyTo: replyTo
+            type:
+                "message",
+
+            message:
+                message,
+
+            replyTo:
+                replyTo
         })
     ) {
+
         return;
     }
 
@@ -2206,72 +2989,248 @@ function sendMessage() {
 }
 
 
-/* =========================
-   CHANGE PASSWORD
-========================= */
+/* =========================================================
+   OWNER: CHANGE PASSWORD
+========================================================= */
 
 changePasswordButton.addEventListener(
     "click",
     () => {
 
-        if (!isOwner) {
-
-            alert(
-                "Only the room owner can change the password."
-            );
-
-            return;
-        }
-
-
         const newPassword =
             prompt(
-                "Enter the new room password.\n\nLeave it blank to remove the password."
+                "Enter the new room password.\n\nLeave blank to remove the password."
             );
 
-
         if (
-            newPassword === null
+            newPassword ===
+            null
         ) {
             return;
         }
 
-
         if (
-            newPassword.length > 100
+            newPassword.length >
+            100
         ) {
 
             alert(
-                "Password must be 100 characters or less."
+                "Password is too long."
             );
 
             return;
         }
 
+        sendSocket({
+            type:
+                "changePassword",
 
-        const sent =
-            sendSocket({
-                type:
-                    "changePassword",
-
-                password:
-                    newPassword
-            });
-
-
-        if (!sent) {
-
-            alert(
-                "Not connected to the server."
-            );
-        }
+            password:
+                newPassword
+        });
     }
 );
 
 
-/* =========================
+/* =========================================================
+   OWNER: RENAME ROOM
+========================================================= */
+
+renameRoomButton.addEventListener(
+    "click",
+    () => {
+
+        const newName =
+            prompt(
+                "Enter the new room name:",
+                room
+            );
+
+        if (
+            newName ===
+            null
+        ) {
+            return;
+        }
+
+        const trimmed =
+            newName.trim();
+
+        if (!trimmed) {
+
+            alert(
+                "Room name cannot be empty."
+            );
+
+            return;
+        }
+
+        if (
+            trimmed.length >
+            100
+        ) {
+
+            alert(
+                "Room name is too long."
+            );
+
+            return;
+        }
+
+        sendSocket({
+            type:
+                "renameRoom",
+
+            newName:
+                trimmed
+        });
+    }
+);
+
+
+/* =========================================================
+   OWNER: TRANSFER
+========================================================= */
+
+transferOwnerButton.addEventListener(
+    "click",
+    () => {
+
+        const others =
+            onlineUserList.filter(
+                name =>
+                    name !== username
+            );
+
+        if (
+            others.length ===
+            0
+        ) {
+
+            alert(
+                "There are no other online users to transfer ownership to."
+            );
+
+            return;
+        }
+
+        const target =
+            prompt(
+                "Enter the exact username of the new owner:\n\n" +
+                others.join("\n")
+            );
+
+        if (
+            target ===
+            null
+        ) {
+            return;
+        }
+
+        const trimmed =
+            target.trim();
+
+        if (!trimmed) {
+            return;
+        }
+
+        if (
+            !others.includes(
+                trimmed
+            )
+        ) {
+
+            alert(
+                "That user is not online."
+            );
+
+            return;
+        }
+
+        if (
+            !confirm(
+                `Transfer ownership to ${trimmed}?`
+            )
+        ) {
+
+            return;
+        }
+
+        sendSocket({
+            type:
+                "transferOwner",
+
+            username:
+                trimmed
+        });
+    }
+);
+
+
+/* =========================================================
+   OWNER: LOCK
+========================================================= */
+
+lockRoomButton.addEventListener(
+    "click",
+    () => {
+
+        const action =
+            roomLocked
+                ? "unlock"
+                : "lock";
+
+        if (
+            !confirm(
+                roomLocked
+                    ? "Unlock this room so new users can join?"
+                    : "Lock this room? Current users will stay connected, but new users will not be able to join."
+            )
+        ) {
+
+            return;
+        }
+
+        sendSocket({
+            type:
+                "toggleLock"
+        });
+    }
+);
+
+
+/* =========================================================
+   OWNER: DELETE
+========================================================= */
+
+deleteRoomButton.addEventListener(
+    "click",
+    () => {
+
+        const confirmation =
+            prompt(
+                `This permanently deletes the room, its messages, and reactions.\n\nType DELETE to confirm:`
+            );
+
+        if (
+            confirmation !==
+            "DELETE"
+        ) {
+
+            return;
+        }
+
+        sendSocket({
+            type:
+                "deleteRoom"
+        });
+    }
+);
+
+
+/* =========================================================
    BUTTONS
-========================= */
+========================================================= */
 
 joinButton.addEventListener(
     "click",
@@ -2284,17 +3243,19 @@ sendButton.addEventListener(
 );
 
 
-/* =========================
+/* =========================================================
    ENTER TO JOIN
-========================= */
+========================================================= */
 
 usernameInput.addEventListener(
     "keydown",
     event => {
 
         if (
-            event.key === "Enter"
+            event.key ===
+            "Enter"
         ) {
+
             joinChat();
         }
     }
@@ -2305,8 +3266,10 @@ roomInput.addEventListener(
     event => {
 
         if (
-            event.key === "Enter"
+            event.key ===
+            "Enter"
         ) {
+
             joinChat();
         }
     }
@@ -2317,17 +3280,19 @@ passwordInput.addEventListener(
     event => {
 
         if (
-            event.key === "Enter"
+            event.key ===
+            "Enter"
         ) {
+
             joinChat();
         }
     }
 );
 
 
-/* =========================
+/* =========================================================
    TYPING
-========================= */
+========================================================= */
 
 messageInput.addEventListener(
     "input",
@@ -2356,16 +3321,17 @@ messageInput.addEventListener(
 );
 
 
-/* =========================
+/* =========================================================
    ENTER TO SEND
-========================= */
+========================================================= */
 
 messageInput.addEventListener(
     "keydown",
     event => {
 
         if (
-            event.key === "Enter" &&
+            event.key ===
+                "Enter" &&
             !event.shiftKey
         ) {
 
@@ -2377,9 +3343,9 @@ messageInput.addEventListener(
 );
 
 
-/* =========================
+/* =========================================================
    COPY LINK
-========================= */
+========================================================= */
 
 copyButton.addEventListener(
     "click",
