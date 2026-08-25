@@ -1,888 +1,900 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LinkChat</title>
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #0f172a;
-    color: white;
-    height: 100vh;
-}
-
-button,
-input,
-textarea {
-    font: inherit;
-}
-
-button {
-    cursor: pointer;
-}
-
-#login {
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-.login-box {
-    width: 100%;
-    max-width: 430px;
-    background: #1e293b;
-    padding: 35px;
-    border-radius: 18px;
-}
-
-.logo {
-    font-size: 32px;
-    font-weight: bold;
-}
-
-.subtitle {
-    color: #94a3b8;
-    margin: 8px 0 25px;
-}
-
-label {
-    display: block;
-    margin: 16px 0 7px;
-}
-
-input,
-textarea {
-    width: 100%;
-    padding: 13px;
-    border: 1px solid #475569;
-    border-radius: 10px;
-    background: #0f172a;
-    color: white;
-    outline: none;
-}
-
-textarea {
-    resize: vertical;
-    min-height: 90px;
-}
-
-input:focus,
-textarea:focus {
-    border-color: #60a5fa;
-}
-
-.password-help {
-    color: #94a3b8;
-    font-size: 12px;
-    margin-top: 6px;
-}
-
-#joinButton {
-    width: 100%;
-    margin-top: 25px;
-    padding: 13px;
-    border: 0;
-    border-radius: 10px;
-    background: #3b82f6;
-    color: white;
-    font-weight: bold;
-}
-
-#joinButton:hover {
-    background: #2563eb;
-}
-
-#chat {
-    display: none;
-    height: 100vh;
-    flex-direction: column;
-}
-
-header {
-    height: 72px;
-    flex-shrink: 0;
-    background: #1e293b;
-    border-bottom: 1px solid #334155;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 18px;
-}
-
-.chat-title {
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.status {
-    font-size: 12px;
-    margin-top: 4px;
-}
-
-.connected {
-    color: #4ade80;
-}
-
-.disconnected {
-    color: #f87171;
-}
-
-.connecting {
-    color: #facc15;
-}
-
-.header-buttons {
-    display: flex;
-    gap: 8px;
-}
-
-.header-button {
-    border: 0;
-    background: #334155;
-    color: white;
-    padding: 10px 14px;
-    border-radius: 9px;
-}
-
-.header-button:hover {
-    background: #475569;
-}
-
-.chat-area {
-    flex: 1;
-    display: flex;
-    min-height: 0;
-}
-
-#messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 25px;
-}
-
-.message {
-    max-width: 75%;
-    background: #1e293b;
-    padding: 11px 14px;
-    border-radius: 14px;
-    margin-bottom: 15px;
-}
-
-.message.mine {
-    margin-left: auto;
-    background: #2563eb;
-}
-
-.name {
-    font-size: 12px;
-    color: #93c5fd;
-    font-weight: bold;
-    margin-bottom: 5px;
-    cursor: pointer;
-}
-
-.name:hover {
-    text-decoration: underline;
-}
-
-.mine .name {
-    color: #dbeafe;
-}
-
-.message-text {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-
-.message-time {
-    font-size: 10px;
-    color: #94a3b8;
-    margin-top: 6px;
-}
-
-.mine .message-time {
-    color: #bfdbfe;
-}
-
-.reply-preview {
-    background: rgba(0,0,0,.18);
-    border-left: 3px solid #93c5fd;
-    padding: 7px 9px;
-    border-radius: 6px;
-    margin-bottom: 8px;
-    font-size: 12px;
-}
-
-.reply-name {
-    font-weight: bold;
-    margin-bottom: 3px;
-}
-
-.reply-text {
-    color: #cbd5e1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.message-actions {
-    display: flex;
-    gap: 6px;
-    margin-top: 8px;
-    flex-wrap: wrap;
-}
-
-.message-actions button {
-    border: 0;
-    border-radius: 6px;
-    padding: 5px 8px;
-    font-size: 11px;
-    color: white;
-    background: rgba(255,255,255,.15);
-}
-
-.message-actions button:hover {
-    background: rgba(255,255,255,.25);
-}
-
-.reactions {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
-    margin-top: 8px;
-}
-
-.reaction-button {
-    border: 1px solid rgba(255,255,255,.18);
-    background: rgba(0,0,0,.15);
-    color: white;
-    border-radius: 14px;
-    padding: 4px 8px;
-}
-
-.reaction-picker {
-    display: flex;
-    gap: 4px;
-    margin-top: 7px;
-    flex-wrap: wrap;
-}
-
-.reaction-picker button {
-    border: 0;
-    background: #334155;
-    color: white;
-    border-radius: 7px;
-    padding: 5px 7px;
-}
-
-.system {
-    text-align: center;
-    color: #64748b;
-    font-size: 13px;
-    margin: 12px;
-}
-
-#onlinePanel {
-    width: 280px;
-    flex-shrink: 0;
-    background: #111827;
-    border-left: 1px solid #334155;
-    padding: 18px;
-    overflow-y: auto;
-}
-
-.online-title {
-    font-size: 15px;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.online-count {
-    color: #94a3b8;
-    font-size: 12px;
-    margin-bottom: 15px;
-}
-
-#ownerControls {
-    display: none;
-    margin-bottom: 20px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid #334155;
-}
-
-.owner-title {
-    color: #facc15;
-    font-weight: bold;
-    margin-bottom: 12px;
-}
-
-.owner-help {
-    color: #94a3b8;
-    font-size: 11px;
-    margin-bottom: 12px;
-}
-
-.owner-user {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 0;
-}
-
-.owner-user-name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.kick-button {
-    flex-shrink: 0;
-    border: 0;
-    background: #991b1b;
-    color: white;
-    padding: 5px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-}
-
-.kick-button:hover {
-    background: #dc2626;
-}
-
-.online-user {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 9px 5px;
-    font-size: 14px;
-}
-
-.online-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #4ade80;
-    flex-shrink: 0;
-}
-
-.online-user-name {
-    cursor: pointer;
-}
-
-.online-user-name:hover {
-    text-decoration: underline;
-}
-
-.owner-badge {
-    display: inline-block;
-    margin-left: 5px;
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: #854d0e;
-    color: #fef08a;
-    font-size: 10px;
-    font-weight: bold;
-}
-
-.you-badge {
-    color: #93c5fd;
-    font-size: 11px;
-}
-
-#typingIndicator {
-    min-height: 22px;
-    padding: 0 20px;
-    color: #94a3b8;
-    font-size: 12px;
-    background: #1e293b;
-}
-
-#replyBar {
-    display: none;
-    background: #111827;
-    border-top: 1px solid #334155;
-    padding: 9px 15px;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-}
-
-.reply-bar-text {
-    min-width: 0;
-    flex: 1;
-}
-
-.reply-bar-title {
-    font-size: 12px;
-    color: #60a5fa;
-    font-weight: bold;
-}
-
-.reply-bar-message {
-    color: #cbd5e1;
-    font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-#cancelReply {
-    border: 0;
-    background: #334155;
-    color: white;
-    border-radius: 7px;
-    padding: 6px 10px;
-}
-
-#composer {
-    display: flex;
-    gap: 10px;
-    padding: 15px;
-    background: #1e293b;
-    border-top: 1px solid #334155;
-}
-
-#sendButton {
-    border: 0;
-    border-radius: 10px;
-    padding: 13px 18px;
-    background: #3b82f6;
-    color: white;
-    font-weight: bold;
-}
-
-#sendButton:disabled {
-    opacity: .5;
-}
-
-/* PROFILE MODAL */
-
-#profileModal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.7);
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 20px;
-}
-
-.profile-box {
-    width: 100%;
-    max-width: 400px;
-    background: #1e293b;
-    border-radius: 18px;
-    padding: 25px;
-    box-shadow: 0 20px 60px rgba(0,0,0,.5);
-}
-
-.profile-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.profile-title {
-    font-size: 20px;
-    font-weight: bold;
-}
-
-.close-profile {
-    border: 0;
-    background: #334155;
-    color: white;
-    border-radius: 8px;
-    padding: 7px 10px;
-}
-
-.profile-avatar {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: #3b82f6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 35px;
-    font-weight: bold;
-    margin: 0 auto 15px;
-}
-
-.profile-name {
-    text-align: center;
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.profile-status {
-    text-align: center;
-    color: #4ade80;
-    font-size: 12px;
-    margin-top: 5px;
-}
-
-.profile-about {
-    margin-top: 20px;
-    padding: 15px;
-    background: #0f172a;
-    border-radius: 10px;
-    color: #cbd5e1;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-
-.profile-actions {
-    margin-top: 20px;
-}
-
-.profile-actions button {
-    width: 100%;
-    padding: 11px;
-    border: 0;
-    border-radius: 9px;
-    background: #3b82f6;
-    color: white;
-    font-weight: bold;
-}
-
-/* PROFILE EDIT */
-
-#profileEditor {
-    display: none;
-    margin-top: 15px;
-}
-
-#saveProfileButton {
-    width: 100%;
-    margin-top: 12px;
-    padding: 11px;
-    border: 0;
-    border-radius: 9px;
-    background: #22c55e;
-    color: white;
-    font-weight: bold;
-}
-
-@media (max-width: 700px) {
-
-    #onlinePanel {
-        display: none;
-    }
-
-    .message {
-        max-width: 88%;
-    }
-
-    #messages {
-        padding: 15px;
-    }
-
-    .chat-title {
-        font-size: 17px;
-    }
-}
-</style>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Chat</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #111827;
+            color: white;
+        }
+
+        button,
+        input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        /* =====================================================
+           LOGIN
+        ===================================================== */
+
+        #loginScreen {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background:
+                radial-gradient(
+                    circle at top,
+                    #26345a,
+                    #111827 60%
+                );
+        }
+
+        .loginBox {
+            width: min(420px, 92%);
+            background: #1f2937;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, .45);
+        }
+
+        .loginBox h1 {
+            margin-top: 0;
+            text-align: center;
+        }
+
+        .loginBox p {
+            text-align: center;
+            color: #9ca3af;
+        }
+
+        .loginBox input {
+            width: 100%;
+            padding: 13px;
+            margin-top: 10px;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            outline: none;
+            background: #111827;
+            color: white;
+        }
+
+        .loginBox input:focus {
+            border-color: #6366f1;
+        }
+
+        .primaryButton {
+            width: 100%;
+            margin-top: 15px;
+            padding: 13px;
+            border: 0;
+            border-radius: 10px;
+            background: #6366f1;
+            color: white;
+            font-weight: bold;
+        }
+
+        .primaryButton:hover {
+            background: #4f46e5;
+        }
+
+        #loginError {
+            color: #f87171;
+            min-height: 20px;
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        /* =====================================================
+           APP
+        ===================================================== */
+
+        #app {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .appLayout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* =====================================================
+           SIDEBAR
+        ===================================================== */
+
+        .sidebar {
+            background: #0f172a;
+            border-right: 1px solid #273244;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .sidebarHeader {
+            padding: 18px;
+            border-bottom: 1px solid #273244;
+        }
+
+        .sidebarHeader h2 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .roomName {
+            color: #818cf8;
+            margin-top: 5px;
+            word-break: break-word;
+        }
+
+        .userSection {
+            padding: 15px;
+            border-bottom: 1px solid #273244;
+        }
+
+        .userCard {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background: #1e293b;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #6366f1;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .userInfo {
+            min-width: 0;
+        }
+
+        .userInfo strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ownerBadge {
+            color: #fbbf24;
+            font-size: 12px;
+        }
+
+        .onlineTitle {
+            padding: 15px 15px 8px;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        #usersList {
+            padding: 0 10px 10px;
+            overflow-y: auto;
+        }
+
+        .onlineUser {
+            padding: 9px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .onlineUser:hover {
+            background: #1e293b;
+        }
+
+        .onlineDot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #22c55e;
+        }
+
+        .sidebarBottom {
+            margin-top: auto;
+            padding: 12px;
+            border-top: 1px solid #273244;
+        }
+
+        .sidebarButton {
+            width: 100%;
+            border: 0;
+            padding: 10px;
+            margin-top: 7px;
+            border-radius: 9px;
+            background: #1e293b;
+            color: white;
+            text-align: left;
+        }
+
+        .sidebarButton:hover {
+            background: #334155;
+        }
+
+        .ownerControls {
+            display: none;
+        }
+
+        /* =====================================================
+           CHAT
+        ===================================================== */
+
+        .chatArea {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            height: 100%;
+        }
+
+        .chatHeader {
+            min-height: 65px;
+            padding: 12px 18px;
+            border-bottom: 1px solid #273244;
+            background: #111827;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chatHeaderLeft {
+            min-width: 0;
+        }
+
+        .chatHeader h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .roomStatus {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #111827;
+        }
+
+        .message {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .messageAvatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #374151;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+
+        .messageBody {
+            max-width: min(700px, 80%);
+        }
+
+        .messageTop {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .messageUsername {
+            font-weight: bold;
+        }
+
+        .messageTime {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .messageText {
+            margin-top: 4px;
+            padding: 10px 13px;
+            border-radius: 12px;
+            background: #1f2937;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .messageEdited {
+            color: #6b7280;
+            font-size: 10px;
+        }
+
+        .systemMessage {
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            margin: 12px 0;
+        }
+
+        .reactions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .reactionButton {
+            border: 1px solid #374151;
+            border-radius: 20px;
+            background: #172033;
+            color: white;
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+
+        .reactionButton:hover {
+            background: #263248;
+        }
+
+        .messageActions {
+            margin-top: 5px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .messageAction {
+            border: 0;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 11px;
+            padding: 3px;
+        }
+
+        .messageAction:hover {
+            color: white;
+        }
+
+        /* =====================================================
+           INPUT
+        ===================================================== */
+
+        .typing {
+            min-height: 20px;
+            padding: 0 18px;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .composer {
+            padding: 12px;
+            border-top: 1px solid #273244;
+            display: flex;
+            gap: 8px;
+            background: #0f172a;
+        }
+
+        #messageInput {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid #374151;
+            border-radius: 10px;
+            padding: 12px;
+            background: #1f2937;
+            color: white;
+            outline: none;
+        }
+
+        #messageInput:focus {
+            border-color: #6366f1;
+        }
+
+        #sendButton {
+            border: 0;
+            border-radius: 10px;
+            padding: 0 20px;
+            background: #6366f1;
+            color: white;
+            font-weight: bold;
+        }
+
+        #sendButton:hover {
+            background: #4f46e5;
+        }
+
+        /* =====================================================
+           MODAL
+        ===================================================== */
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .65);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modalBox {
+            width: min(500px, 100%);
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #1f2937;
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: 0 20px 70px rgba(0,0,0,.5);
+        }
+
+        .modalBox h2 {
+            margin-top: 0;
+        }
+
+        .modalInput {
+            width: 100%;
+            padding: 11px;
+            border-radius: 9px;
+            border: 1px solid #374151;
+            background: #111827;
+            color: white;
+            margin-top: 8px;
+            outline: none;
+        }
+
+        .modalButtons {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .modalButton {
+            border: 0;
+            padding: 10px 14px;
+            border-radius: 9px;
+            background: #374151;
+            color: white;
+        }
+
+        .modalButton.primary {
+            background: #6366f1;
+        }
+
+        .modalButton.danger {
+            background: #dc2626;
+        }
+
+        .modalButton:hover {
+            filter: brightness(1.1);
+        }
+
+        .controlGroup {
+            padding: 14px 0;
+            border-bottom: 1px solid #374151;
+        }
+
+        .controlGroup:last-child {
+            border-bottom: 0;
+        }
+
+        .controlGroup h3 {
+            margin: 0 0 5px;
+        }
+
+        .controlGroup p {
+            margin: 0;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        /* =====================================================
+           PROFILE
+        ===================================================== */
+
+        .profilePreview {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px;
+            background: #111827;
+            border-radius: 12px;
+            margin-bottom: 15px;
+        }
+
+        .largeAvatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #6366f1;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        /* =====================================================
+           TOAST
+        ===================================================== */
+
+        #toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: #1f2937;
+            border: 1px solid #374151;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 10px;
+            display: none;
+            z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0,0,0,.4);
+        }
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 700px) {
+
+            .appLayout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .messageBody {
+                max-width: 85%;
+            }
+
+            .chatHeader {
+                padding: 10px 12px;
+            }
+
+            .messages {
+                padding: 12px;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
+<!-- =========================================================
+     LOGIN SCREEN
+========================================================= -->
 
-<div id="login">
+<div id="loginScreen">
 
-    <div class="login-box">
+    <div class="loginBox">
 
-        <div class="logo">💬 LinkChat</div>
+        <h1>💬 Chat</h1>
 
-        <div class="subtitle">
-            Create a room and share the link.
-        </div>
-
-        <label>Your name</label>
+        <p>
+            Enter your name and choose a room.
+        </p>
 
         <input
-            id="username"
+            id="usernameInput"
+            type="text"
             maxlength="30"
-            placeholder="Enter your name"
+            placeholder="Your username"
             autocomplete="off"
         >
 
-        <label>Room name</label>
-
         <input
-            id="room"
+            id="roomInput"
+            type="text"
             maxlength="100"
-            placeholder="Example: Friends"
+            placeholder="Room name"
             autocomplete="off"
         >
 
-        <label>Room password</label>
-
         <input
-            id="password"
+            id="passwordInput"
             type="password"
             maxlength="100"
-            placeholder="Leave blank for no password"
+            placeholder="Room password (if required)"
             autocomplete="off"
-        >
-
-        <div class="password-help">
-            For a new room, the first password becomes the room password.
-        </div>
-
-        <button id="joinButton">
-            Join Chat
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- CHAT -->
-
-<div id="chat">
-
-    <header>
-
-        <div>
-            <div class="chat-title">
-                💬 <span id="roomTitle"></span>
-            </div>
-
-            <div id="status" class="status connecting">
-                🟡 Connecting...
-            </div>
-        </div>
-
-        <div class="header-buttons">
-
-            <button
-                id="profileButton"
-                class="header-button"
-            >
-                👤 Profile
-            </button>
-
-            <button
-                id="copyButton"
-                class="header-button"
-            >
-                🔗 Copy Link
-            </button>
-
-        </div>
-
-    </header>
-
-
-    <div class="chat-area">
-
-        <div id="messages"></div>
-
-
-        <div id="onlinePanel">
-
-            <div id="ownerControls">
-
-                <div class="owner-title">
-                    👑 Owner Controls
-                </div>
-
-                <div class="owner-help">
-                    You are the room owner.
-                </div>
-
-                <button
-                    id="changePasswordButton"
-                    style="
-                        width:100%;
-                        margin-bottom:12px;
-                        padding:9px;
-                        border:0;
-                        border-radius:8px;
-                        background:#7c3aed;
-                        color:white;
-                        font-weight:bold;
-                    "
-                >
-                    🔒 Change Room Password
-                </button>
-
-                <div id="ownerUsers"></div>
-
-            </div>
-
-
-            <div class="online-title">
-                🟢 Online
-            </div>
-
-            <div
-                id="onlineCount"
-                class="online-count"
-            >
-                0 people online
-            </div>
-
-            <div id="onlineUsers"></div>
-
-        </div>
-
-    </div>
-
-
-    <div id="typingIndicator"></div>
-
-
-    <div id="replyBar">
-
-        <div class="reply-bar-text">
-
-            <div class="reply-bar-title">
-                ↩️ Replying to
-                <span id="replyBarName"></span>
-            </div>
-
-            <div
-                id="replyBarMessage"
-                class="reply-bar-message"
-            ></div>
-
-        </div>
-
-        <button id="cancelReply">
-            ✕
-        </button>
-
-    </div>
-
-
-    <div id="composer">
-
-        <input
-            id="messageInput"
-            maxlength="1000"
-            placeholder="Type a message..."
-            autocomplete="off"
-            disabled
         >
 
         <button
-            id="sendButton"
-            disabled
+            id="joinButton"
+            class="primaryButton"
         >
-            Send
+            Join Room
         </button>
+
+        <div id="loginError"></div>
 
     </div>
 
 </div>
 
 
-<!-- PROFILE MODAL -->
+<!-- =========================================================
+     MAIN APP
+========================================================= -->
 
-<div id="profileModal">
+<div id="app">
 
-    <div class="profile-box">
+    <div class="appLayout">
 
-        <div class="profile-header">
+        <!-- =================================================
+             SIDEBAR
+        ================================================= -->
 
-            <div class="profile-title">
-                👤 User Profile
+        <aside class="sidebar">
+
+            <div class="sidebarHeader">
+
+                <h2>💬 Chat</h2>
+
+                <div
+                    id="sidebarRoomName"
+                    class="roomName"
+                >
+                    Room
+                </div>
+
             </div>
 
+
+            <div class="userSection">
+
+                <div class="userCard">
+
+                    <div
+                        id="myAvatar"
+                        class="avatar"
+                    >
+                        ?
+                    </div>
+
+                    <div class="userInfo">
+
+                        <strong id="myUsername">
+                            User
+                        </strong>
+
+                        <span
+                            id="myOwnerBadge"
+                            class="ownerBadge"
+                            style="display:none;"
+                        >
+                            👑 Owner
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="onlineTitle">
+                Online Users
+            </div>
+
+            <div id="usersList"></div>
+
+
+            <div class="sidebarBottom">
+
+                <button
+                    id="profileButton"
+                    class="sidebarButton"
+                >
+                    👤 Profile
+                </button>
+
+                <button
+                    id="roomControlsButton"
+                    class="sidebarButton ownerControls"
+                >
+                    ⚙️ Room Controls
+                </button>
+
+                <button
+                    id="leaveButton"
+                    class="sidebarButton"
+                >
+                    🚪 Leave Room
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- =================================================
+             CHAT AREA
+        ================================================= -->
+
+        <main class="chatArea">
+
+            <header class="chatHeader">
+
+                <div class="chatHeaderLeft">
+
+                    <h2 id="headerRoomName">
+                        Room
+                    </h2>
+
+                    <div
+                        id="roomStatus"
+                        class="roomStatus"
+                    >
+                        Connecting...
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <div
+                id="messages"
+                class="messages"
+            ></div>
+
+
+            <div
+                id="typing"
+                class="typing"
+            ></div>
+
+
+            <div class="composer">
+
+                <input
+                    id="messageInput"
+                    type="text"
+                    maxlength="1000"
+                    placeholder="Type a message..."
+                    autocomplete="off"
+                >
+
+                <button id="sendButton">
+                    Send
+                </button>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     PROFILE MODAL
+========================================================= -->
+
+<div
+    id="profileModal"
+    class="modal"
+>
+
+    <div class="modalBox">
+
+        <h2>👤 Profile</h2>
+
+        <div class="profilePreview">
+
+            <div
+                id="profileAvatar"
+                class="largeAvatar"
+            >
+                ?
+            </div>
+
+            <div>
+
+                <strong id="profilePreviewName">
+                    User
+                </strong>
+
+                <div
+                    style="
+                        color:#9ca3af;
+                        font-size:13px;
+                        margin-top:4px;
+                    "
+                >
+                    Your profile
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <label>
+            Display Name
+        </label>
+
+        <input
+            id="profileNameInput"
+            class="modalInput"
+            maxlength="30"
+            type="text"
+        >
+
+
+        <label
+            style="
+                display:block;
+                margin-top:12px;
+            "
+        >
+            Avatar Letter
+        </label>
+
+        <input
+            id="profileAvatarInput"
+            class="modalInput"
+            maxlength="1"
+            type="text"
+            placeholder="A"
+        >
+
+
+        <div class="modalButtons">
+
             <button
-                class="close-profile"
-                id="closeProfile"
+                id="saveProfileButton"
+                class="modalButton primary"
             >
-                ✕
-            </button>
-
-        </div>
-
-
-        <div
-            id="profileAvatar"
-            class="profile-avatar"
-        >
-            ?
-        </div>
-
-
-        <div
-            id="profileName"
-            class="profile-name"
-        >
-            User
-        </div>
-
-
-        <div
-            id="profileStatus"
-            class="profile-status"
-        >
-            🟢 Online
-        </div>
-
-
-        <div
-            id="profileAbout"
-            class="profile-about"
-        >
-            No profile information yet.
-        </div>
-
-
-        <!-- EDIT PROFILE -->
-
-        <div id="profileEditor">
-
-            <label>
-                About me
-            </label>
-
-            <textarea
-                id="profileAboutInput"
-                maxlength="300"
-                placeholder="Tell people something about yourself..."
-            ></textarea>
-
-            <label>
-                Status
-            </label>
-
-            <input
-                id="profileStatusInput"
-                maxlength="50"
-                placeholder="Example: Gaming 🎮"
-            >
-
-            <button id="saveProfileButton">
                 Save Profile
             </button>
 
-        </div>
-
-
-        <div class="profile-actions">
-
-            <button id="editProfileButton">
-                ✏️ Edit My Profile
+            <button
+                class="modalButton"
+                onclick="closeModal('profileModal')"
+            >
+                Close
             </button>
 
         </div>
@@ -890,1152 +902,659 @@ header {
     </div>
 
 </div>
+
+
+<!-- =========================================================
+     ROOM CONTROLS MODAL
+========================================================= -->
+
+<div
+    id="roomControlsModal"
+    class="modal"
+>
+
+    <div class="modalBox">
+
+        <h2>👑 Room Controls</h2>
+
+
+        <!-- PASSWORD -->
+
+        <div class="controlGroup">
+
+            <h3>🔒 Room Password</h3>
+
+            <p>
+                Change or remove the room password.
+            </p>
+
+            <input
+                id="newRoomPassword"
+                class="modalInput"
+                type="password"
+                maxlength="100"
+                placeholder="Leave empty to remove password"
+            >
+
+            <div class="modalButtons">
+
+                <button
+                    id="changePasswordButton"
+                    class="modalButton primary"
+                >
+                    Save Password
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- RENAME -->
+
+        <div class="controlGroup">
+
+            <h3>✏️ Rename Room</h3>
+
+            <p>
+                Change the name of this room.
+            </p>
+
+            <input
+                id="newRoomName"
+                class="modalInput"
+                type="text"
+                maxlength="100"
+                placeholder="New room name"
+            >
+
+            <div class="modalButtons">
+
+                <button
+                    id="renameRoomButton"
+                    class="modalButton primary"
+                >
+                    Rename Room
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- TRANSFER -->
+
+        <div class="controlGroup">
+
+            <h3>👑 Transfer Ownership</h3>
+
+            <p>
+                Transfer owner privileges to an online user.
+            </p>
+
+            <input
+                id="transferUsername"
+                class="modalInput"
+                type="text"
+                maxlength="30"
+                placeholder="Username"
+            >
+
+            <div class="modalButtons">
+
+                <button
+                    id="transferOwnershipButton"
+                    class="modalButton primary"
+                >
+                    Transfer Ownership
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- LOCK -->
+
+        <div class="controlGroup">
+
+            <h3>🔐 Lock / Unlock Room</h3>
+
+            <p id="lockDescription">
+                Locking prevents new users from joining.
+            </p>
+
+            <div class="modalButtons">
+
+                <button
+                    id="toggleLockButton"
+                    class="modalButton"
+                >
+                    Lock Room
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- KICK -->
+
+        <div class="controlGroup">
+
+            <h3>🚫 Kick User</h3>
+
+            <p>
+                Remove an online user from the room.
+            </p>
+
+            <input
+                id="kickUsername"
+                class="modalInput"
+                type="text"
+                maxlength="30"
+                placeholder="Username"
+            >
+
+            <div class="modalButtons">
+
+                <button
+                    id="kickButton"
+                    class="modalButton"
+                >
+                    Kick User
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- DELETE -->
+
+        <div class="controlGroup">
+
+            <h3>🗑️ Delete Room</h3>
+
+            <p>
+                Permanently delete this room and its messages.
+            </p>
+
+            <div class="modalButtons">
+
+                <button
+                    id="deleteRoomButton"
+                    class="modalButton danger"
+                >
+                    Delete Room
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="modalButtons">
+
+            <button
+                class="modalButton"
+                onclick="closeModal('roomControlsModal')"
+            >
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div id="toast"></div>
 
 
 <script>
 
-const login =
-    document.getElementById("login");
-
-const chat =
-    document.getElementById("chat");
-
-const usernameInput =
-    document.getElementById("username");
-
-const roomInput =
-    document.getElementById("room");
-
-const passwordInput =
-    document.getElementById("password");
-
-const joinButton =
-    document.getElementById("joinButton");
-
-const roomTitle =
-    document.getElementById("roomTitle");
-
-const statusElement =
-    document.getElementById("status");
-
-const messages =
-    document.getElementById("messages");
-
-const messageInput =
-    document.getElementById("messageInput");
-
-const sendButton =
-    document.getElementById("sendButton");
-
-const copyButton =
-    document.getElementById("copyButton");
-
-const onlineUsers =
-    document.getElementById("onlineUsers");
-
-const onlineCount =
-    document.getElementById("onlineCount");
-
-const ownerControls =
-    document.getElementById("ownerControls");
-
-const ownerUsers =
-    document.getElementById("ownerUsers");
-
-const typingIndicator =
-    document.getElementById("typingIndicator");
-
-const replyBar =
-    document.getElementById("replyBar");
-
-const replyBarName =
-    document.getElementById("replyBarName");
-
-const replyBarMessage =
-    document.getElementById("replyBarMessage");
-
-const cancelReply =
-    document.getElementById("cancelReply");
-
-const profileModal =
-    document.getElementById("profileModal");
-
-const profileButton =
-    document.getElementById("profileButton");
-
-const closeProfile =
-    document.getElementById("closeProfile");
-
-const profileAvatar =
-    document.getElementById("profileAvatar");
-
-const profileName =
-    document.getElementById("profileName");
-
-const profileStatus =
-    document.getElementById("profileStatus");
-
-const profileAbout =
-    document.getElementById("profileAbout");
-
-const profileEditor =
-    document.getElementById("profileEditor");
-
-const profileAboutInput =
-    document.getElementById("profileAboutInput");
-
-const profileStatusInput =
-    document.getElementById("profileStatusInput");
-
-const editProfileButton =
-    document.getElementById("editProfileButton");
-
-const saveProfileButton =
-    document.getElementById("saveProfileButton");
-
+/* =========================================================
+   STATE
+========================================================= */
 
 let socket = null;
 
-let username = "";
-let room = "";
-let password = "";
+let currentUsername = "";
 
-let ownerUsername = "";
+let currentRoom = "";
+
+let currentOwner = "";
+
 let isOwner = false;
 
-let onlineUserList = [];
+let roomLocked = false;
+
+let hasPassword = false;
 
 let typingTimer = null;
 
-let currentlyTyping =
-    new Set();
 
-let replyTo = null;
+/* =========================================================
+   DOM
+========================================================= */
 
-let profiles = {};
-
-
-/* =========================
-   URL ROOM
-========================= */
-
-const params =
-    new URLSearchParams(
-        window.location.search
+const loginScreen =
+    document.getElementById(
+        "loginScreen"
     );
 
-const urlRoom =
-    params.get("room");
+const app =
+    document.getElementById(
+        "app"
+    );
 
-if (urlRoom) {
-    roomInput.value = urlRoom;
-}
+const usernameInput =
+    document.getElementById(
+        "usernameInput"
+    );
+
+const roomInput =
+    document.getElementById(
+        "roomInput"
+    );
+
+const passwordInput =
+    document.getElementById(
+        "passwordInput"
+    );
+
+const joinButton =
+    document.getElementById(
+        "joinButton"
+    );
+
+const loginError =
+    document.getElementById(
+        "loginError"
+    );
+
+const messages =
+    document.getElementById(
+        "messages"
+    );
+
+const messageInput =
+    document.getElementById(
+        "messageInput"
+    );
+
+const sendButton =
+    document.getElementById(
+        "sendButton"
+    );
+
+const usersList =
+    document.getElementById(
+        "usersList"
+    );
+
+const typing =
+    document.getElementById(
+        "typing"
+    );
+
+const myUsername =
+    document.getElementById(
+        "myUsername"
+    );
+
+const myAvatar =
+    document.getElementById(
+        "myAvatar"
+    );
+
+const myOwnerBadge =
+    document.getElementById(
+        "myOwnerBadge"
+    );
+
+const sidebarRoomName =
+    document.getElementById(
+        "sidebarRoomName"
+    );
+
+const headerRoomName =
+    document.getElementById(
+        "headerRoomName"
+    );
+
+const roomStatus =
+    document.getElementById(
+        "roomStatus"
+    );
+
+const profileButton =
+    document.getElementById(
+        "profileButton"
+    );
+
+const roomControlsButton =
+    document.getElementById(
+        "roomControlsButton"
+    );
+
+const leaveButton =
+    document.getElementById(
+        "leaveButton"
+    );
 
 
-/* =========================
-   STATUS
-========================= */
+/* =========================================================
+   STORAGE
+========================================================= */
 
-function setStatus(type, text) {
+function loadProfile() {
 
-    statusElement.className =
-        "status " + type;
+    try {
 
-    statusElement.textContent =
-        text;
-}
-
-
-/* =========================
-   TIME
-========================= */
-
-function formatTime(time) {
-
-    if (!time) return "";
-
-    const date =
-        new Date(time);
-
-    const now =
-        new Date();
-
-    if (
-        date.toDateString() ===
-        now.toDateString()
-    ) {
-
-        return (
-            "Today at " +
-            date.toLocaleTimeString(
-                [],
-                {
-                    hour: "numeric",
-                    minute: "2-digit"
-                }
+        return JSON.parse(
+            localStorage.getItem(
+                "chatProfile"
             )
-        );
-    }
+        ) || {};
 
-    return (
-        date.toLocaleDateString(
-            [],
-            {
-                month: "short",
-                day: "numeric",
-                year: "numeric"
-            }
-        ) +
-        " at " +
-        date.toLocaleTimeString(
-            [],
-            {
-                hour: "numeric",
-                minute: "2-digit"
-            }
-        )
+    } catch {
+
+        return {};
+    }
+}
+
+function saveProfile(profile) {
+
+    localStorage.setItem(
+        "chatProfile",
+        JSON.stringify(profile)
     );
 }
 
 
-/* =========================
-   PROFILE
-========================= */
+/* =========================================================
+   TOAST
+========================================================= */
 
-function getInitial(name) {
+let toastTimer = null;
 
-    if (!name) {
-        return "?";
-    }
+function showToast(message) {
 
-    return name
-        .trim()
-        .charAt(0)
-        .toUpperCase();
-}
+    const toast =
+        document.getElementById(
+            "toast"
+        );
 
+    toast.textContent =
+        message;
 
-function showProfile(name) {
-
-    const profile =
-        profiles[name] || {};
-
-    profileName.textContent =
-        name;
-
-    profileAvatar.textContent =
-        getInitial(name);
-
-    profileAbout.textContent =
-        profile.about ||
-        "No profile information yet.";
-
-    profileStatus.textContent =
-        profile.status
-            ? "🟢 " + profile.status
-            : "🟢 Online";
-
-    const isMe =
-        name === username;
-
-    editProfileButton.style.display =
-        isMe
-            ? "block"
-            : "none";
-
-    profileEditor.style.display =
-        "none";
-
-    profileModal.style.display =
-        "flex";
-}
-
-
-function openMyProfileEditor() {
-
-    const profile =
-        profiles[username] || {};
-
-    profileAboutInput.value =
-        profile.about || "";
-
-    profileStatusInput.value =
-        profile.status || "";
-
-    profileEditor.style.display =
+    toast.style.display =
         "block";
+
+    clearTimeout(
+        toastTimer
+    );
+
+    toastTimer =
+        setTimeout(
+            () => {
+                toast.style.display =
+                    "none";
+            },
+            3000
+        );
 }
 
+
+/* =========================================================
+   MODALS
+========================================================= */
+
+function openModal(id) {
+
+    const modal =
+        document.getElementById(id);
+
+    if (modal) {
+        modal.style.display =
+            "flex";
+    }
+}
+
+function closeModal(id) {
+
+    const modal =
+        document.getElementById(id);
+
+    if (modal) {
+        modal.style.display =
+            "none";
+    }
+}
+
+document
+    .querySelectorAll(".modal")
+    .forEach(modal => {
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target ===
+                    modal
+                ) {
+                    modal.style.display =
+                        "none";
+                }
+            }
+        );
+
+    });
+
+
+/* =========================================================
+   PROFILE
+========================================================= */
+
+function getProfile() {
+
+    const profile =
+        loadProfile();
+
+    return {
+        name:
+            profile.name ||
+            currentUsername,
+
+        avatar:
+            profile.avatar ||
+            (
+                currentUsername
+                    ? currentUsername
+                        .charAt(0)
+                        .toUpperCase()
+                    : "?"
+            )
+    };
+}
+
+function updateProfileUI() {
+
+    const profile =
+        getProfile();
+
+    myUsername.textContent =
+        profile.name;
+
+    myAvatar.textContent =
+        profile.avatar;
+
+    document.getElementById(
+        "profilePreviewName"
+    ).textContent =
+        profile.name;
+
+    document.getElementById(
+        "profileAvatar"
+    ).textContent =
+        profile.avatar;
+
+    document.getElementById(
+        "profileNameInput"
+    ).value =
+        profile.name;
+
+    document.getElementById(
+        "profileAvatarInput"
+    ).value =
+        profile.avatar;
+}
 
 profileButton.addEventListener(
     "click",
-    () => showProfile(username)
-);
-
-
-closeProfile.addEventListener(
-    "click",
-    () => {
-        profileModal.style.display =
-            "none";
-    }
-);
-
-
-profileModal.addEventListener(
-    "click",
-    event => {
-
-        if (
-            event.target ===
-            profileModal
-        ) {
-
-            profileModal.style.display =
-                "none";
-        }
-    }
-);
-
-
-editProfileButton.addEventListener(
-    "click",
-    openMyProfileEditor
-);
-
-
-saveProfileButton.addEventListener(
-    "click",
     () => {
 
-        const about =
-            profileAboutInput.value
-                .trim()
-                .slice(0, 300);
+        updateProfileUI();
 
-        const status =
-            profileStatusInput.value
-                .trim()
-                .slice(0, 50);
-
-        sendSocket({
-            type: "updateProfile",
-            about: about,
-            status: status
-        });
-    }
-);
-
-
-/* =========================
-   MESSAGE
-========================= */
-
-function addMessage(
-    name,
-    message,
-    mine,
-    time,
-    id,
-    replyToId,
-    reactions
-) {
-
-    const box =
-        document.createElement("div");
-
-    box.className =
-        "message";
-
-    if (mine) {
-        box.classList.add("mine");
-    }
-
-    box.dataset.id =
-        String(id);
-
-
-    if (replyToId) {
-
-        const replied =
-            document.querySelector(
-                `.message[data-id="${replyToId}"]`
-            );
-
-        if (replied) {
-
-            const preview =
-                document.createElement("div");
-
-            preview.className =
-                "reply-preview";
-
-            const repliedName =
-                replied.querySelector(
-                    ".name"
-                );
-
-            const repliedText =
-                replied.querySelector(
-                    ".message-text"
-                );
-
-            const nameElement =
-                document.createElement("div");
-
-            nameElement.className =
-                "reply-name";
-
-            nameElement.textContent =
-                repliedName.textContent;
-
-            const textElement =
-                document.createElement("div");
-
-            textElement.className =
-                "reply-text";
-
-            textElement.textContent =
-                repliedText.textContent;
-
-            preview.appendChild(
-                nameElement
-            );
-
-            preview.appendChild(
-                textElement
-            );
-
-            box.appendChild(
-                preview
-            );
-        }
-    }
-
-
-    const nameElement =
-        document.createElement("div");
-
-    nameElement.className =
-        "name";
-
-    nameElement.textContent =
-        name;
-
-    nameElement.onclick =
-        () => showProfile(name);
-
-
-    if (
-        name === ownerUsername
-    ) {
-
-        const badge =
-            document.createElement("span");
-
-        badge.className =
-            "owner-badge";
-
-        badge.textContent =
-            "👑 OWNER";
-
-        nameElement.appendChild(
-            badge
+        openModal(
+            "profileModal"
         );
     }
+);
 
+document
+    .getElementById(
+        "saveProfileButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
 
-    const messageElement =
-        document.createElement("div");
+            let name =
+                document.getElementById(
+                    "profileNameInput"
+                ).value
+                .trim()
+                .slice(0, 30);
 
-    messageElement.className =
-        "message-text";
+            let avatar =
+                document.getElementById(
+                    "profileAvatarInput"
+                ).value
+                .trim()
+                .slice(0, 1);
 
-    messageElement.textContent =
-        message;
+            if (!name) {
+                name = currentUsername;
+            }
 
+            if (!avatar) {
+                avatar =
+                    name
+                        .charAt(0)
+                        .toUpperCase();
+            }
 
-    const timeElement =
-        document.createElement("div");
-
-    timeElement.className =
-        "message-time";
-
-    timeElement.textContent =
-        formatTime(time);
-
-
-    box.appendChild(
-        nameElement
-    );
-
-    box.appendChild(
-        messageElement
-    );
-
-    box.appendChild(
-        timeElement
-    );
-
-
-    const actions =
-        document.createElement("div");
-
-    actions.className =
-        "message-actions";
-
-
-    const replyButton =
-        document.createElement("button");
-
-    replyButton.textContent =
-        "↩️ Reply";
-
-    replyButton.onclick =
-        () =>
-            startReply(
-                id,
+            saveProfile({
                 name,
-                message
+                avatar
+            });
+
+            updateProfileUI();
+
+            closeModal(
+                "profileModal"
             );
 
-    actions.appendChild(
-        replyButton
-    );
-
-
-    if (mine) {
-
-        const editButton =
-            document.createElement("button");
-
-        editButton.textContent =
-            "✏️ Edit";
-
-        editButton.onclick =
-            () => {
-
-                const newMessage =
-                    prompt(
-                        "Edit your message:",
-                        messageElement.textContent
-                    );
-
-                if (
-                    newMessage === null
-                ) {
-                    return;
-                }
-
-                const trimmed =
-                    newMessage.trim();
-
-                if (!trimmed) {
-                    return;
-                }
-
-                sendSocket({
-                    type: "edit",
-                    id: Number(id),
-                    message: trimmed
-                });
-            };
-
-
-        const deleteButton =
-            document.createElement("button");
-
-        deleteButton.textContent =
-            "🗑️ Delete";
-
-        deleteButton.onclick =
-            () => {
-
-                if (
-                    !confirm(
-                        "Delete this message?"
-                    )
-                ) {
-                    return;
-                }
-
-                sendSocket({
-                    type: "delete",
-                    id: Number(id)
-                });
-            };
-
-        actions.appendChild(
-            editButton
-        );
-
-        actions.appendChild(
-            deleteButton
-        );
-    }
-
-
-    box.appendChild(
-        actions
-    );
-
-
-    const reactionArea =
-        document.createElement("div");
-
-    reactionArea.className =
-        "reactions";
-
-    renderReactions(
-        reactionArea,
-        reactions || {},
-        id
-    );
-
-    box.appendChild(
-        reactionArea
-    );
-
-
-    const picker =
-        document.createElement("div");
-
-    picker.className =
-        "reaction-picker";
-
-
-    [
-        "👍",
-        "❤️",
-        "😂",
-        "😮",
-        "😢",
-        "😡"
-    ].forEach(
-        reaction => {
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-            button.textContent =
-                reaction;
-
-            button.onclick =
-                () =>
-                    sendReaction(
-                        id,
-                        reaction
-                    );
-
-            picker.appendChild(
-                button
+            showToast(
+                "Profile saved."
             );
         }
     );
 
 
-    box.appendChild(
-        picker
-    );
-
-    messages.appendChild(
-        box
-    );
-
-    messages.scrollTop =
-        messages.scrollHeight;
-}
-
-
-/* =========================
-   REACTIONS
-========================= */
-
-function renderReactions(
-    container,
-    reactions,
-    messageId
-) {
-
-    container.innerHTML = "";
-
-    [
-        "👍",
-        "❤️",
-        "😂",
-        "😮",
-        "😢",
-        "😡"
-    ].forEach(
-        reaction => {
-
-            const count =
-                Number(
-                    reactions[reaction] || 0
-                );
-
-            if (count <= 0) {
-                return;
-            }
-
-            const button =
-                document.createElement(
-                    "button"
-                );
-
-            button.className =
-                "reaction-button";
-
-            button.textContent =
-                reaction + " " + count;
-
-            button.onclick =
-                () =>
-                    sendReaction(
-                        messageId,
-                        reaction
-                    );
-
-            container.appendChild(
-                button
-            );
-        }
-    );
-}
-
-
-function sendReaction(
-    messageId,
-    reaction
-) {
-
-    sendSocket({
-        type: "reaction",
-        id: Number(messageId),
-        reaction: reaction
-    });
-}
-
-
-/* =========================
-   SOCKET SEND
-========================= */
-
-function sendSocket(data) {
-
-    if (
-        !socket ||
-        socket.readyState !==
-            WebSocket.OPEN
-    ) {
-        return false;
-    }
-
-    socket.send(
-        JSON.stringify(data)
-    );
-
-    return true;
-}
-
-
-/* =========================
-   REPLY
-========================= */
-
-function startReply(
-    id,
-    name,
-    message
-) {
-
-    replyTo =
-        Number(id);
-
-    replyBarName.textContent =
-        name;
-
-    replyBarMessage.textContent =
-        message;
-
-    replyBar.style.display =
-        "flex";
-
-    messageInput.focus();
-}
-
-
-function cancelReplyMode() {
-
-    replyTo = null;
-
-    replyBar.style.display =
-        "none";
-
-    replyBarName.textContent =
-        "";
-
-    replyBarMessage.textContent =
-        "";
-}
-
-
-cancelReply.addEventListener(
-    "click",
-    cancelReplyMode
-);
-
-
-/* =========================
-   SYSTEM MESSAGE
-========================= */
-
-function addSystemMessage(text) {
-
-    const element =
-        document.createElement("div");
-
-    element.className =
-        "system";
-
-    element.textContent =
-        text;
-
-    messages.appendChild(
-        element
-    );
-
-    messages.scrollTop =
-        messages.scrollHeight;
-}
-
-
-/* =========================
-   OWNER CONTROLS
-========================= */
-
-function updateOwnerControls() {
-
-    if (!isOwner) {
-
-        ownerControls.style.display =
-            "none";
-
-        ownerUsers.innerHTML =
-            "";
-
-        return;
-    }
-
-    ownerControls.style.display =
-        "block";
-
-    ownerUsers.innerHTML =
-        "";
-
-
-    onlineUserList.forEach(
-        name => {
-
-            if (name === username) {
-                return;
-            }
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "owner-user";
-
-
-            const nameElement =
-                document.createElement(
-                    "span"
-                );
-
-            nameElement.className =
-                "owner-user-name";
-
-            nameElement.textContent =
-                name;
-
-
-            const kickButton =
-                document.createElement(
-                    "button"
-                );
-
-            kickButton.className =
-                "kick-button";
-
-            kickButton.textContent =
-                "👢 Kick";
-
-            kickButton.onclick =
-                () => {
-
-                    if (
-                        !confirm(
-                            `Kick ${name} from this room?`
-                        )
-                    ) {
-                        return;
-                    }
-
-                    sendSocket({
-                        type: "kick",
-                        username: name
-                    });
-                };
-
-
-            row.appendChild(
-                nameElement
-            );
-
-            row.appendChild(
-                kickButton
-            );
-
-            ownerUsers.appendChild(
-                row
-            );
-        }
-    );
-}
-
-
-/* =========================
-   ONLINE USERS
-========================= */
-
-function updateOnlineUsers(users) {
-
-    onlineUserList =
-        Array.isArray(users)
-            ? users
-            : [];
-
-    onlineUsers.innerHTML =
-        "";
-
-    onlineCount.textContent =
-        onlineUserList.length === 1
-            ? "1 person online"
-            : `${onlineUserList.length} people online`;
-
-
-    onlineUserList.forEach(
-        name => {
-
-            const user =
-                document.createElement(
-                    "div"
-                );
-
-            user.className =
-                "online-user";
-
-
-            const dot =
-                document.createElement(
-                    "div"
-                );
-
-            dot.className =
-                "online-dot";
-
-
-            const nameElement =
-                document.createElement(
-                    "span"
-                );
-
-            nameElement.className =
-                "online-user-name";
-
-            nameElement.textContent =
-                name;
-
-            nameElement.onclick =
-                () =>
-                    showProfile(name);
-
-
-            if (
-                name === ownerUsername
-            ) {
-
-                const badge =
-                    document.createElement(
-                        "span"
-                    );
-
-                badge.className =
-                    "owner-badge";
-
-                badge.textContent =
-                    "👑 OWNER";
-
-                nameElement.appendChild(
-                    badge
-                );
-            }
-
-
-            if (
-                name === username
-            ) {
-
-                const you =
-                    document.createElement(
-                        "span"
-                    );
-
-                you.className =
-                    "you-badge";
-
-                you.textContent =
-                    " (you)";
-
-                nameElement.appendChild(
-                    you
-                );
-            }
-
-
-            user.appendChild(dot);
-            user.appendChild(
-                nameElement
-            );
-
-            onlineUsers.appendChild(
-                user
-            );
-        }
-    );
-
-
-    updateOwnerControls();
-}
-
-
-/* =========================
-   TYPING
-========================= */
-
-function updateTypingIndicator() {
-
-    const names =
-        Array.from(
-            currentlyTyping
-        );
-
-    if (!names.length) {
-
-        typingIndicator.textContent =
-            "";
-
-        return;
-    }
-
-    if (names.length === 1) {
-
-        typingIndicator.textContent =
-            `${names[0]} is typing...`;
-
-        return;
-    }
-
-    if (names.length === 2) {
-
-        typingIndicator.textContent =
-            `${names[0]} and ${names[1]} are typing...`;
-
-        return;
-    }
-
-    typingIndicator.textContent =
-        `${names.length} people are typing...`;
-}
-
-
-function sendTypingStatus(
-    isTyping
-) {
-
-    sendSocket({
-        type: "typing",
-        typing: isTyping
-    });
-}
-
-
-/* =========================
-   COMPOSER
-========================= */
-
-function setComposerEnabled(
-    enabled
-) {
-
-    messageInput.disabled =
-        !enabled;
-
-    sendButton.disabled =
-        !enabled;
-}
-
-
-/* =========================
-   CONNECT
-========================= */
-
-function connect() {
-
-    setStatus(
-        "connecting",
-        "🟡 Connecting..."
-    );
-
+/* =========================================================
+   SOCKET URL
+========================================================= */
+
+function getSocketURL() {
 
     const protocol =
-        window.location.protocol ===
-        "https:"
+        location.protocol === "https:"
             ? "wss:"
             : "ws:";
 
+    return (
+        protocol +
+        "//" +
+        location.host
+    );
+}
+
+
+/* =========================================================
+   CONNECT
+========================================================= */
+
+function connect() {
+
+    if (socket) {
+
+        try {
+            socket.close();
+        } catch {}
+    }
 
     socket =
         new WebSocket(
-            protocol +
-            "//" +
-            window.location.host
+            getSocketURL()
         );
-
 
     socket.addEventListener(
         "open",
         () => {
 
-            setStatus(
-                "connected",
-                "🟢 Connected"
+            const profile =
+                loadProfile();
+
+            currentUsername =
+                usernameInput.value
+                    .trim()
+                    .slice(0, 30);
+
+            currentRoom =
+                roomInput.value
+                    .trim()
+                    .slice(0, 100);
+
+            const password =
+                passwordInput.value;
+
+            socket.send(
+                JSON.stringify({
+                    type: "join",
+
+                    username:
+                        currentUsername,
+
+                    room:
+                        currentRoom,
+
+                    password:
+                        password
+                })
             );
 
-            sendSocket({
-                type: "join",
-                username: username,
-                room: room,
-                password: password
-            });
         }
     );
-
 
     socket.addEventListener(
         "message",
@@ -2055,596 +1574,1129 @@ function connect() {
                 return;
             }
 
-
-            /* JOINED */
-
-            if (
-                data.type ===
-                "joined"
-            ) {
-
-                roomTitle.textContent =
-                    data.room;
-
-                ownerUsername =
-                    data.owner || "";
-
-                isOwner =
-                    Boolean(
-                        data.isOwner
-                    );
-
-                updateOwnerControls();
-
-                setComposerEnabled(
-                    true
-                );
-
-                messageInput.focus();
-
-                return;
-            }
-
-
-            /* PROFILE */
-
-            if (
-                data.type ===
-                "profile"
-            ) {
-
-                profiles[
-                    data.username
-                ] = {
-                    about:
-                        data.about || "",
-
-                    status:
-                        data.status || ""
-                };
-
-                if (
-                    data.username ===
-                    profileName.textContent
-                ) {
-
-                    showProfile(
-                        data.username
-                    );
-                }
-
-                return;
-            }
-
-
-            /* PROFILES */
-
-            if (
-                data.type ===
-                "profiles"
-            ) {
-
-                profiles =
-                    data.profiles || {};
-
-                return;
-            }
-
-
-            /* OWNER */
-
-            if (
-                data.type ===
-                "owner"
-            ) {
-
-                ownerUsername =
-                    data.owner || "";
-
-                isOwner =
-                    username ===
-                    ownerUsername;
-
-                updateOnlineUsers(
-                    onlineUserList
-                );
-
-                return;
-            }
-
-
-            /* PASSWORD */
-
-            if (
-                data.type ===
-                "passwordError"
-            ) {
-
-                alert(
-                    "Incorrect room password."
-                );
-
-                if (socket) {
-                    socket.close();
-                }
-
-                chat.style.display =
-                    "none";
-
-                login.style.display =
-                    "flex";
-
-                setComposerEnabled(
-                    false
-                );
-
-                passwordInput.focus();
-
-                return;
-            }
-
-
-            /* KICKED */
-
-            if (
-                data.type ===
-                "kicked"
-            ) {
-
-                alert(
-                    data.message ||
-                    "You were kicked from the room."
-                );
-
-                if (socket) {
-                    socket.close();
-                }
-
-                chat.style.display =
-                    "none";
-
-                login.style.display =
-                    "flex";
-
-                setComposerEnabled(
-                    false
-                );
-
-                return;
-            }
-
-
-            /* MESSAGE */
-
-            if (
-                data.type ===
-                "message"
-            ) {
-
-                addMessage(
-                    data.username,
-                    data.message,
-                    data.username ===
-                        username,
-                    data.time,
-                    data.id,
-                    data.replyTo,
-                    data.reactions
-                );
-
-                return;
-            }
-
-
-            /* EDIT */
-
-            if (
-                data.type ===
-                "messageEdited"
-            ) {
-
-                const element =
-                    document.querySelector(
-                        `.message[data-id="${data.id}"]`
-                    );
-
-                if (element) {
-
-                    const text =
-                        element.querySelector(
-                            ".message-text"
-                        );
-
-                    if (text) {
-
-                        text.textContent =
-                            data.message +
-                            " (edited)";
-                    }
-                }
-
-                return;
-            }
-
-
-            /* DELETE */
-
-            if (
-                data.type ===
-                "messageDeleted"
-            ) {
-
-                const element =
-                    document.querySelector(
-                        `.message[data-id="${data.id}"]`
-                    );
-
-                if (element) {
-                    element.remove();
-                }
-
-                return;
-            }
-
-
-            /* REACTION */
-
-            if (
-                data.type ===
-                "reactionUpdate"
-            ) {
-
-                const element =
-                    document.querySelector(
-                        `.message[data-id="${data.id}"]`
-                    );
-
-                if (element) {
-
-                    const area =
-                        element.querySelector(
-                            ".reactions"
-                        );
-
-                    if (area) {
-
-                        renderReactions(
-                            area,
-                            data.reactions ||
-                                {},
-                            data.id
-                        );
-                    }
-                }
-
-                return;
-            }
-
-
-            /* SYSTEM */
-
-            if (
-                data.type ===
-                "system"
-            ) {
-
-                addSystemMessage(
-                    data.message
-                );
-
-                return;
-            }
-
-
-            /* USERS */
-
-            if (
-                data.type ===
-                "users"
-            ) {
-
-                updateOnlineUsers(
-                    data.users || []
-                );
-
-                return;
-            }
-
-
-            /* TYPING */
-
-            if (
-                data.type ===
-                "typing"
-            ) {
-
-                if (data.typing) {
-
-                    currentlyTyping.add(
-                        data.username
-                    );
-
-                } else {
-
-                    currentlyTyping.delete(
-                        data.username
-                    );
-                }
-
-                updateTypingIndicator();
-
-                return;
-            }
-
-
-            /* PASSWORD CHANGED */
-
-            if (
-                data.type ===
-                "passwordChanged"
-            ) {
-
-                alert(
-                    data.message ||
-                    "Password changed."
-                );
-
-                return;
-            }
-
-
-            /* ERROR */
-
-            if (
-                data.type ===
-                "error"
-            ) {
-
-                alert(
-                    data.message ||
-                    "Something went wrong."
-                );
-            }
-
+            handleServerMessage(
+                data
+            );
         }
     );
-
 
     socket.addEventListener(
         "close",
         () => {
 
-            setComposerEnabled(
-                false
-            );
+            if (
+                app.style.display ===
+                "block"
+            ) {
 
-            setStatus(
-                "disconnected",
-                "🔴 Disconnected"
-            );
+                roomStatus.textContent =
+                    "Disconnected";
+
+                showToast(
+                    "Disconnected from server."
+                );
+            }
+        }
+    );
+
+    socket.addEventListener(
+        "error",
+        () => {
+
+            loginError.textContent =
+                "Could not connect to the server.";
         }
     );
 }
 
 
-/* =========================
-   JOIN
-========================= */
+/* =========================================================
+   SERVER MESSAGE HANDLER
+========================================================= */
 
-function joinChat() {
+function handleServerMessage(data) {
 
-    username =
-        usernameInput.value.trim();
+    switch (data.type) {
 
-    room =
-        roomInput.value.trim();
-
-    password =
-        passwordInput.value;
+        case "connected":
+            break;
 
 
-    if (!username) {
+        case "joined":
 
-        alert(
-            "Please enter your name."
-        );
+            currentRoom =
+                data.room;
 
-        usernameInput.focus();
+            currentOwner =
+                data.owner || "";
 
-        return;
+            isOwner =
+                Boolean(
+                    data.isOwner
+                );
+
+            roomLocked =
+                Boolean(
+                    data.locked
+                );
+
+            hasPassword =
+                Boolean(
+                    data.hasPassword
+                );
+
+            enterChat();
+
+            break;
+
+
+        case "message":
+
+            addMessage(
+                data
+            );
+
+            break;
+
+
+        case "messageEdited":
+
+            updateMessage(
+                data
+            );
+
+            break;
+
+
+        case "messageDeleted":
+
+            deleteMessageFromUI(
+                data.id
+            );
+
+            break;
+
+
+        case "reactionUpdate":
+
+            updateReactions(
+                data.id,
+                data.reactions
+            );
+
+            break;
+
+
+        case "users":
+
+            updateUsers(
+                data.users
+            );
+
+            break;
+
+
+        case "system":
+
+            addSystemMessage(
+                data.message
+            );
+
+            break;
+
+
+        case "typing":
+
+            handleTyping(
+                data
+            );
+
+            break;
+
+
+        case "passwordError":
+
+            loginError.textContent =
+                data.message;
+
+            if (socket) {
+                socket.close();
+            }
+
+            break;
+
+
+        case "roomLocked":
+
+            loginError.textContent =
+                data.message;
+
+            if (socket) {
+                socket.close();
+            }
+
+            break;
+
+
+        case "error":
+
+            if (
+                loginScreen.style.display !==
+                "none"
+            ) {
+
+                loginError.textContent =
+                    data.message;
+
+            } else {
+
+                showToast(
+                    data.message
+                );
+            }
+
+            break;
+
+
+        case "passwordChanged":
+
+            showToast(
+                data.message
+            );
+
+            break;
+
+
+        case "roomSettings":
+
+            currentOwner =
+                data.owner || "";
+
+            roomLocked =
+                Boolean(
+                    data.locked
+                );
+
+            hasPassword =
+                Boolean(
+                    data.hasPassword
+                );
+
+            isOwner =
+                currentUsername.toLowerCase() ===
+                currentOwner.toLowerCase();
+
+            updateOwnerUI();
+
+            break;
+
+
+        case "roomRenamed":
+
+            currentRoom =
+                data.newName ||
+                data.room ||
+                currentRoom;
+
+            updateRoomNames();
+
+            showToast(
+                "Room renamed."
+            );
+
+            break;
+
+
+        case "owner":
+
+            currentOwner =
+                data.owner;
+
+            isOwner =
+                Boolean(
+                    data.isOwner
+                );
+
+            updateOwnerUI();
+
+            break;
+
+
+        case "ownerChanged":
+
+            currentOwner =
+                data.owner;
+
+            isOwner =
+                currentUsername.toLowerCase() ===
+                currentOwner.toLowerCase();
+
+            updateOwnerUI();
+
+            if (data.message) {
+                showToast(
+                    data.message
+                );
+            }
+
+            break;
+
+
+        case "roomLockChanged":
+
+            roomLocked =
+                Boolean(
+                    data.locked
+                );
+
+            updateLockUI();
+
+            if (data.message) {
+                showToast(
+                    data.message
+                );
+            }
+
+            break;
+
+
+        case "kicked":
+
+            showToast(
+                data.message ||
+                "You were kicked."
+            );
+
+            leaveRoom();
+
+            break;
+
+
+        case "roomDeleted":
+
+            showToast(
+                data.message ||
+                "Room deleted."
+            );
+
+            leaveRoom();
+
+            break;
     }
-
-
-    if (!room) {
-
-        alert(
-            "Please enter a room name."
-        );
-
-        roomInput.focus();
-
-        return;
-    }
-
-
-    history.replaceState(
-        {},
-        "",
-        "?room=" +
-        encodeURIComponent(room)
-    );
-
-
-    login.style.display =
-        "none";
-
-    chat.style.display =
-        "flex";
-
-    roomTitle.textContent =
-        room;
-
-    messages.innerHTML =
-        "";
-
-    onlineUsers.innerHTML =
-        "";
-
-    ownerUsers.innerHTML =
-        "";
-
-    onlineUserList = [];
-
-    ownerUsername = "";
-
-    isOwner = false;
-
-    currentlyTyping.clear();
-
-    profiles = {};
-
-    cancelReplyMode();
-
-    setComposerEnabled(
-        false
-    );
-
-    updateOwnerControls();
-
-    connect();
 }
 
 
-/* =========================
-   SEND MESSAGE
-========================= */
+/* =========================================================
+   ENTER CHAT
+========================================================= */
 
-function sendMessage() {
+function enterChat() {
 
-    const message =
-        messageInput.value.trim();
+    loginScreen.style.display =
+        "none";
 
-    if (!message) {
-        return;
-    }
+    app.style.display =
+        "block";
 
-    if (
-        !sendSocket({
-            type: "message",
-            message: message,
-            replyTo: replyTo
-        })
-    ) {
-        return;
-    }
+    updateRoomNames();
 
-    sendTypingStatus(false);
+    updateProfileUI();
 
-    messageInput.value =
-        "";
+    updateOwnerUI();
 
-    cancelReplyMode();
+    updateLockUI();
 
     messageInput.focus();
 }
 
 
-/* =========================
-   BUTTONS
-========================= */
+/* =========================================================
+   ROOM UI
+========================================================= */
 
-joinButton.addEventListener(
-    "click",
-    joinChat
-);
+function updateRoomNames() {
+
+    sidebarRoomName.textContent =
+        currentRoom;
+
+    headerRoomName.textContent =
+        currentRoom;
+
+    document.title =
+        currentRoom +
+        " - Chat";
+
+    roomStatus.textContent =
+        roomLocked
+            ? "🔐 Locked"
+            : "🟢 Online";
+}
+
+function updateOwnerUI() {
+
+    myOwnerBadge.style.display =
+        isOwner
+            ? "inline"
+            : "none";
+
+    roomControlsButton.style.display =
+        isOwner
+            ? "block"
+            : "none";
+}
+
+function updateLockUI() {
+
+    const button =
+        document.getElementById(
+            "toggleLockButton"
+        );
+
+    const description =
+        document.getElementById(
+            "lockDescription"
+        );
+
+    if (roomLocked) {
+
+        button.textContent =
+            "Unlock Room";
+
+        description.textContent =
+            "The room is locked. New users cannot join.";
+
+    } else {
+
+        button.textContent =
+            "Lock Room";
+
+        description.textContent =
+            "Locking prevents new users from joining.";
+    }
+
+    updateRoomNames();
+}
+
+
+/* =========================================================
+   USERS
+========================================================= */
+
+function updateUsers(users) {
+
+    usersList.innerHTML = "";
+
+    for (
+        const username
+        of users
+    ) {
+
+        const div =
+            document.createElement(
+                "div"
+            );
+
+        div.className =
+            "onlineUser";
+
+        const dot =
+            document.createElement(
+                "span"
+            );
+
+        dot.className =
+            "onlineDot";
+
+        const name =
+            document.createElement(
+                "span"
+            );
+
+        name.textContent =
+            username;
+
+        if (
+            username.toLowerCase() ===
+            currentOwner.toLowerCase()
+        ) {
+
+            name.textContent +=
+                " 👑";
+        }
+
+        div.appendChild(dot);
+        div.appendChild(name);
+
+        usersList.appendChild(
+            div
+        );
+    }
+}
+
+
+/* =========================================================
+   MESSAGE UI
+========================================================= */
+
+function getInitial(name) {
+
+    if (!name) {
+        return "?";
+    }
+
+    return name
+        .charAt(0)
+        .toUpperCase();
+}
+
+function formatTime(value) {
+
+    if (!value) {
+        return "";
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+        return "";
+    }
+
+    return date.toLocaleTimeString(
+        [],
+        {
+            hour: "numeric",
+            minute: "2-digit"
+        }
+    );
+}
+
+function addMessage(data) {
+
+    const existing =
+        document.querySelector(
+            `[data-message-id="${data.id}"]`
+        );
+
+    if (existing) {
+        return;
+    }
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.className =
+        "message";
+
+    wrapper.dataset.messageId =
+        data.id;
+
+
+    const avatar =
+        document.createElement(
+            "div"
+        );
+
+    avatar.className =
+        "messageAvatar";
+
+    avatar.textContent =
+        getInitial(
+            data.username
+        );
+
+
+    const body =
+        document.createElement(
+            "div"
+        );
+
+    body.className =
+        "messageBody";
+
+
+    const top =
+        document.createElement(
+            "div"
+        );
+
+    top.className =
+        "messageTop";
+
+
+    const username =
+        document.createElement(
+            "span"
+        );
+
+    username.className =
+        "messageUsername";
+
+    username.textContent =
+        data.username;
+
+
+    const time =
+        document.createElement(
+            "span"
+        );
+
+    time.className =
+        "messageTime";
+
+    time.textContent =
+        formatTime(
+            data.time
+        );
+
+
+    top.appendChild(
+        username
+    );
+
+    top.appendChild(
+        time
+    );
+
+
+    const text =
+        document.createElement(
+            "div"
+        );
+
+    text.className =
+        "messageText";
+
+    text.textContent =
+        data.message;
+
+
+    if (data.edited) {
+
+        const edited =
+            document.createElement(
+                "span"
+            );
+
+        edited.className =
+            "messageEdited";
+
+        edited.textContent =
+            " edited";
+
+        text.appendChild(
+            edited
+        );
+    }
+
+
+    const reactions =
+        document.createElement(
+            "div"
+        );
+
+    reactions.className =
+        "reactions";
+
+    reactions.dataset.reactions =
+        "true";
+
+
+    if (data.reactions) {
+
+        renderReactions(
+            reactions,
+            data.id,
+            data.reactions
+        );
+    }
+
+
+    const actions =
+        document.createElement(
+            "div"
+        );
+
+    actions.className =
+        "messageActions";
+
+
+    const reactionList = [
+        "👍",
+        "❤️",
+        "😂",
+        "😮",
+        "😢",
+        "😡"
+    ];
+
+    for (
+        const reaction
+        of reactionList
+    ) {
+
+        const button =
+            document.createElement(
+                "button"
+            );
+
+        button.className =
+            "messageAction";
+
+        button.textContent =
+            reaction;
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                sendReaction(
+                    data.id,
+                    reaction
+                );
+            }
+        );
+
+        actions.appendChild(
+            button
+        );
+    }
+
+
+    if (
+        data.username ===
+        currentUsername
+    ) {
+
+        const editButton =
+            document.createElement(
+                "button"
+            );
+
+        editButton.className =
+            "messageAction";
+
+        editButton.textContent =
+            "Edit";
+
+        editButton.addEventListener(
+            "click",
+            () => {
+
+                const newMessage =
+                    prompt(
+                        "Edit message:",
+                        data.message
+                    );
+
+                if (
+                    newMessage !== null &&
+                    newMessage.trim()
+                ) {
+
+                    sendData({
+                        type:
+                            "edit",
+
+                        id:
+                            data.id,
+
+                        message:
+                            newMessage.trim()
+                    });
+                }
+            }
+        );
+
+        actions.appendChild(
+            editButton
+        );
+
+
+        const deleteButton =
+            document.createElement(
+                "button"
+            );
+
+        deleteButton.className =
+            "messageAction";
+
+        deleteButton.textContent =
+            "Delete";
+
+        deleteButton.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    confirm(
+                        "Delete this message?"
+                    )
+                ) {
+
+                    sendData({
+                        type:
+                            "delete",
+
+                        id:
+                            data.id
+                    });
+                }
+            }
+        );
+
+        actions.appendChild(
+            deleteButton
+        );
+    }
+
+
+    body.appendChild(
+        top
+    );
+
+    body.appendChild(
+        text
+    );
+
+    body.appendChild(
+        reactions
+    );
+
+    body.appendChild(
+        actions
+    );
+
+
+    wrapper.appendChild(
+        avatar
+    );
+
+    wrapper.appendChild(
+        body
+    );
+
+
+    messages.appendChild(
+        wrapper
+    );
+
+    scrollMessages();
+}
+
+
+/* =========================================================
+   SYSTEM MESSAGE
+========================================================= */
+
+function addSystemMessage(
+    text
+) {
+
+    const div =
+        document.createElement(
+            "div"
+        );
+
+    div.className =
+        "systemMessage";
+
+    div.textContent =
+        text;
+
+    messages.appendChild(
+        div
+    );
+
+    scrollMessages();
+}
+
+
+/* =========================================================
+   EDIT MESSAGE
+========================================================= */
+
+function updateMessage(data) {
+
+    const element =
+        document.querySelector(
+            `[data-message-id="${data.id}"]`
+        );
+
+    if (!element) {
+        return;
+    }
+
+    const text =
+        element.querySelector(
+            ".messageText"
+        );
+
+    if (!text) {
+        return;
+    }
+
+    text.textContent =
+        data.message;
+
+    const edited =
+        document.createElement(
+            "span"
+        );
+
+    edited.className =
+        "messageEdited";
+
+    edited.textContent =
+        " edited";
+
+    text.appendChild(
+        edited
+    );
+}
+
+
+/* =========================================================
+   DELETE MESSAGE
+========================================================= */
+
+function deleteMessageFromUI(
+    id
+) {
+
+    const element =
+        document.querySelector(
+            `[data-message-id="${id}"]`
+        );
+
+    if (!element) {
+        return;
+    }
+
+    const text =
+        element.querySelector(
+            ".messageText"
+        );
+
+    if (text) {
+
+        text.textContent =
+            "[message deleted]";
+    }
+
+    const actions =
+        element.querySelector(
+            ".messageActions"
+        );
+
+    if (actions) {
+        actions.innerHTML = "";
+    }
+
+    const reactions =
+        element.querySelector(
+            ".reactions"
+        );
+
+    if (reactions) {
+        reactions.innerHTML = "";
+    }
+}
+
+
+/* =========================================================
+   REACTIONS
+========================================================= */
+
+function renderReactions(
+    container,
+    id,
+    reactions
+) {
+
+    container.innerHTML = "";
+
+    for (
+        const [reaction, count]
+        of Object.entries(
+            reactions || {}
+        )
+    ) {
+
+        const button =
+            document.createElement(
+                "button"
+            );
+
+        button.className =
+            "reactionButton";
+
+        button.textContent =
+            `${reaction} ${count}`;
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                sendReaction(
+                    id,
+                    reaction
+                );
+            }
+        );
+
+        container.appendChild(
+            button
+        );
+    }
+}
+
+function updateReactions(
+    id,
+    reactions
+) {
+
+    const message =
+        document.querySelector(
+            `[data-message-id="${id}"]`
+        );
+
+    if (!message) {
+        return;
+    }
+
+    const container =
+        message.querySelector(
+            ".reactions"
+        );
+
+    if (!container) {
+        return;
+    }
+
+    renderReactions(
+        container,
+        id,
+        reactions
+    );
+}
+
+function sendReaction(
+    id,
+    reaction
+) {
+
+    sendData({
+        type:
+            "reaction",
+
+        id:
+            id,
+
+        reaction:
+            reaction
+    });
+}
+
+
+/* =========================================================
+   TYPING
+========================================================= */
+
+function handleTyping(data) {
+
+    if (!data.typing) {
+
+        typing.textContent =
+            "";
+
+        return;
+    }
+
+    typing.textContent =
+        `${data.username} is typing...`;
+}
+
+
+/* =========================================================
+   SEND DATA
+========================================================= */
+
+function sendData(data) {
+
+    if (
+        !socket ||
+        socket.readyState !==
+            WebSocket.OPEN
+    ) {
+
+        showToast(
+            "Not connected."
+        );
+
+        return false;
+    }
+
+    socket.send(
+        JSON.stringify(data)
+    );
+
+    return true;
+}
+
+
+/* =========================================================
+   SEND MESSAGE
+========================================================= */
+
+function sendMessage() {
+
+    const text =
+        messageInput.value
+            .trim();
+
+    if (!text) {
+        return;
+    }
+
+    sendData({
+        type:
+            "message",
+
+        message:
+            text
+    });
+
+    messageInput.value =
+        "";
+
+    sendData({
+        type:
+            "typing",
+
+        typing:
+            false
+    });
+}
 
 sendButton.addEventListener(
     "click",
     sendMessage
 );
 
-
-/* =========================
-   ENTER JOIN
-========================= */
-
-usernameInput.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key === "Enter"
-        ) {
-            joinChat();
-        }
-    }
-);
-
-roomInput.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key === "Enter"
-        ) {
-            joinChat();
-        }
-    }
-);
-
-passwordInput.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key === "Enter"
-        ) {
-            joinChat();
-        }
-    }
-);
-
-
-/* =========================
-   TYPING
-========================= */
-
-messageInput.addEventListener(
-    "input",
-    () => {
-
-        sendTypingStatus(true);
-
-        clearTimeout(
-            typingTimer
-        );
-
-        typingTimer =
-            setTimeout(
-                () => {
-
-                    sendTypingStatus(
-                        false
-                    );
-
-                },
-                1200
-            );
-    }
-);
-
-
-/* =========================
-   ENTER SEND
-========================= */
-
 messageInput.addEventListener(
     "keydown",
     event => {
 
         if (
-            event.key === "Enter" &&
-            !event.shiftKey
+            event.key ===
+            "Enter"
         ) {
 
             event.preventDefault();
@@ -2654,92 +2706,488 @@ messageInput.addEventListener(
     }
 );
 
+messageInput.addEventListener(
+    "input",
+    () => {
 
-/* =========================
-   COPY LINK
-========================= */
+        sendData({
+            type:
+                "typing",
 
-copyButton.addEventListener(
-    "click",
-    async () => {
+            typing:
+                true
+        });
 
-        try {
+        clearTimeout(
+            typingTimer
+        );
 
-            await navigator.clipboard
-                .writeText(
-                    window.location.href
-                );
-
-            copyButton.textContent =
-                "✓ Copied!";
-
+        typingTimer =
             setTimeout(
                 () => {
 
-                    copyButton.textContent =
-                        "🔗 Copy Link";
+                    sendData({
+                        type:
+                            "typing",
+
+                        typing:
+                            false
+                    });
 
                 },
-                1500
+                900
+            );
+    }
+);
+
+
+/* =========================================================
+   OWNER CONTROLS
+========================================================= */
+
+roomControlsButton.addEventListener(
+    "click",
+    () => {
+
+        if (!isOwner) {
+
+            showToast(
+                "Only the room owner can use these controls."
             );
 
-        } catch {
+            return;
+        }
 
-            alert(
-                "Copy failed. Copy the URL manually."
+        document.getElementById(
+            "newRoomName"
+        ).value =
+            currentRoom;
+
+        updateLockUI();
+
+        openModal(
+            "roomControlsModal"
+        );
+    }
+);
+
+
+/* =========================================================
+   CHANGE PASSWORD
+========================================================= */
+
+document
+    .getElementById(
+        "changePasswordButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const password =
+                document.getElementById(
+                    "newRoomPassword"
+                ).value;
+
+            sendData({
+                type:
+                    "changePassword",
+
+                password:
+                    password
+            });
+
+            document.getElementById(
+                "newRoomPassword"
+            ).value =
+                "";
+
+            showToast(
+                password
+                    ? "Saving new password..."
+                    : "Removing password..."
             );
+        }
+    );
+
+
+/* =========================================================
+   RENAME ROOM
+========================================================= */
+
+document
+    .getElementById(
+        "renameRoomButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const newName =
+                document.getElementById(
+                    "newRoomName"
+                ).value
+                    .trim();
+
+            if (!newName) {
+
+                showToast(
+                    "Enter a room name."
+                );
+
+                return;
+            }
+
+            sendData({
+                type:
+                    "renameRoom",
+
+                newName:
+                    newName
+            });
+        }
+    );
+
+
+/* =========================================================
+   TRANSFER OWNERSHIP
+========================================================= */
+
+document
+    .getElementById(
+        "transferOwnershipButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const username =
+                document.getElementById(
+                    "transferUsername"
+                ).value
+                    .trim();
+
+            if (!username) {
+
+                showToast(
+                    "Enter a username."
+                );
+
+                return;
+            }
+
+            if (
+                !confirm(
+                    `Transfer ownership to ${username}?`
+                )
+            ) {
+
+                return;
+            }
+
+            sendData({
+                type:
+                    "transferOwner",
+
+                username:
+                    username
+            });
+        }
+    );
+
+
+/* =========================================================
+   LOCK / UNLOCK
+========================================================= */
+
+document
+    .getElementById(
+        "toggleLockButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            sendData({
+                type:
+                    "toggleLock"
+            });
+        }
+    );
+
+
+/* =========================================================
+   KICK
+========================================================= */
+
+document
+    .getElementById(
+        "kickButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            const username =
+                document.getElementById(
+                    "kickUsername"
+                ).value
+                    .trim();
+
+            if (!username) {
+
+                showToast(
+                    "Enter a username."
+                );
+
+                return;
+            }
+
+            if (
+                !confirm(
+                    `Kick ${username} from the room?`
+                )
+            ) {
+
+                return;
+            }
+
+            sendData({
+                type:
+                    "kick",
+
+                username:
+                    username
+            });
+
+            document.getElementById(
+                "kickUsername"
+            ).value =
+                "";
+        }
+    );
+
+
+/* =========================================================
+   DELETE ROOM
+========================================================= */
+
+document
+    .getElementById(
+        "deleteRoomButton"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            if (
+                !confirm(
+                    "Are you sure you want to permanently delete this room and all of its messages?"
+                )
+            ) {
+
+                return;
+            }
+
+            if (
+                !confirm(
+                    "This cannot be undone. Delete the room?"
+                )
+            ) {
+
+                return;
+            }
+
+            sendData({
+                type:
+                    "deleteRoom"
+            });
+        }
+    );
+
+
+/* =========================================================
+   LEAVE ROOM
+========================================================= */
+
+function leaveRoom() {
+
+    try {
+
+        if (socket) {
+            socket.close();
+        }
+
+    } catch {}
+
+    socket =
+        null;
+
+    currentRoom =
+        "";
+
+    currentOwner =
+        "";
+
+    isOwner =
+        false;
+
+    roomLocked =
+        false;
+
+    hasPassword =
+        false;
+
+    messages.innerHTML =
+        "";
+
+    usersList.innerHTML =
+        "";
+
+    typing.textContent =
+        "";
+
+    app.style.display =
+        "none";
+
+    loginScreen.style.display =
+        "flex";
+
+    loginError.textContent =
+        "";
+
+    passwordInput.value =
+        "";
+
+    updateOwnerUI();
+}
+
+leaveButton.addEventListener(
+    "click",
+    () => {
+
+        if (
+            confirm(
+                "Leave this room?"
+            )
+        ) {
+
+            leaveRoom();
         }
     }
 );
 
 
-/* =========================
-   CHANGE PASSWORD
-========================= */
+/* =========================================================
+   JOIN BUTTON
+========================================================= */
 
-const changePasswordButton =
-    document.getElementById(
-        "changePasswordButton"
-    );
+joinButton.addEventListener(
+    "click",
+    () => {
 
-if (changePasswordButton) {
+        loginError.textContent =
+            "";
 
-    changePasswordButton.addEventListener(
-        "click",
-        () => {
+        const username =
+            usernameInput.value
+                .trim();
 
-            const newPassword =
-                prompt(
-                    "Enter the new room password.\n\nLeave blank to remove the password."
-                );
+        const room =
+            roomInput.value
+                .trim();
+
+        if (!username) {
+
+            loginError.textContent =
+                "Enter a username.";
+
+            usernameInput.focus();
+
+            return;
+        }
+
+        if (!room) {
+
+            loginError.textContent =
+                "Enter a room name.";
+
+            roomInput.focus();
+
+            return;
+        }
+
+        currentUsername =
+            username.slice(
+                0,
+                30
+            );
+
+        currentRoom =
+            room.slice(
+                0,
+                100
+            );
+
+        connect();
+    }
+);
+
+
+/* =========================================================
+   ENTER KEY ON LOGIN
+========================================================= */
+
+[
+    usernameInput,
+    roomInput,
+    passwordInput
+].forEach(input => {
+
+    input.addEventListener(
+        "keydown",
+        event => {
 
             if (
-                newPassword === null
-            ) {
-                return;
-            }
-
-            if (
-                newPassword.length > 100
+                event.key ===
+                "Enter"
             ) {
 
-                alert(
-                    "Password must be 100 characters or less."
-                );
-
-                return;
+                joinButton.click();
             }
-
-            sendSocket({
-                type:
-                    "changePassword",
-
-                password:
-                    newPassword
-            });
         }
     );
+
+});
+
+
+/* =========================================================
+   SCROLL
+========================================================= */
+
+function scrollMessages() {
+
+    messages.scrollTop =
+        messages.scrollHeight;
 }
+
+
+/* =========================================================
+   INITIAL PROFILE
+========================================================= */
+
+(function init() {
+
+    const profile =
+        loadProfile();
+
+    if (profile.name) {
+
+        usernameInput.value =
+            profile.name;
+    }
+
+})();
 
 </script>
 
