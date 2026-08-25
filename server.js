@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const WebSocket = require("ws");
 const path = require("path");
+const crypto = require("crypto");
 const { Pool } = require("pg");
 
 const app = express();
@@ -26,6 +27,8 @@ app.use((req, res) => {
 });
 
 
+/* DATABASE */
+
 async function setupDatabase() {
 
     await pool.query(`
@@ -38,12 +41,32 @@ async function setupDatabase() {
         )
     `);
 
+
+    /*
+        Create the rooms table.
+
+        password_hash is NULL for rooms
+        that don't have a password.
+    */
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS rooms (
+            room TEXT PRIMARY KEY,
+            password_hash TEXT
+        )
+    `);
+
+
     console.log("Database ready.");
 }
 
 
+/* ROOMS CURRENTLY ONLINE */
+
 const rooms = new Map();
 
+
+/* SEND TO ONE USER */
 
 function send(ws, data) {
 
@@ -53,6 +76,8 @@ function send(ws, data) {
 
 }
 
+
+/* SEND TO EVERYONE IN ROOM */
 
 function broadcast(room, data) {
 
@@ -67,22 +92,32 @@ function broadcast(room, data) {
 }
 
 
-function broadcastExcept(room, data, exceptWs) {
+/* HASH PASSWORD */
 
-    const users = rooms.get(room);
+function hashPassword(password) {
 
-    if (!users) return;
-
-    for (const user of users) {
-
-        if (user.ws !== exceptWs) {
-            send(user.ws, data);
-        }
-
-    }
+    return crypto
+        .createHash("sha256")
+        .update(password)
+        .digest("hex");
 
 }
 
+
+/* CHECK PASSWORD */
+
+function passwordMatches(password, hash) {
+
+    if (!hash) {
+        return true;
+    }
+
+    return hashPassword(password) === hash;
+
+}
+
+
+/* WEBSOCKET */
 
 wss.on("connection", (ws) => {
 
@@ -94,9 +129,12 @@ wss.on("connection", (ws) => {
 
         let data;
 
+
         try {
 
-            data = JSON.parse(raw.toString());
+            data = JSON.parse(
+                raw.toString()
+            );
 
         } catch {
 
@@ -105,7 +143,80 @@ wss.on("connection", (ws) => {
         }
 
 
-        // JOIN
+        /* =========================
+           CHECK ROOM
+        ========================= */
+
+        if (data.type === "checkRoom") {
+
+            const room =
+                String(data.room || "")
+                .trim()
+                .slice(0, 100);
+
+
+            if (!room) {
+
+                send(ws, {
+                    type: "roomStatus",
+                    exists: false,
+                    passwordProtected: false
+                });
+
+                return;
+
+            }
+
+
+            try {
+
+                const result =
+                    await pool.query(
+                        `
+                        SELECT password_hash
+                        FROM rooms
+                        WHERE room = $1
+                        `,
+                        [room]
+                    );
+
+
+                if (result.rows.length === 0) {
+
+                    send(ws, {
+                        type: "roomStatus",
+                        exists: false,
+                        passwordProtected: false
+                    });
+
+                } else {
+
+                    send(ws, {
+                        type: "roomStatus",
+                        exists: true,
+                        passwordProtected:
+                            !!result.rows[0].password_hash
+                    });
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Room check error:",
+                    error
+                );
+
+            }
+
+            return;
+        }
+
+
+        /* =========================
+           JOIN ROOM
+        ========================= */
+
         if (data.type === "join") {
 
             const room =
@@ -113,10 +224,15 @@ wss.on("connection", (ws) => {
                 .trim()
                 .slice(0, 100);
 
+
             const username =
                 String(data.username || "Anonymous")
                 .trim()
                 .slice(0, 30);
+
+
+            const password =
+                String(data.password || "");
 
 
             if (!room) {
@@ -127,99 +243,227 @@ wss.on("connection", (ws) => {
                 });
 
                 return;
+
             }
 
 
-            currentRoom = room;
-            currentUser = username;
+            if (!username) {
 
+                send(ws, {
+                    type: "error",
+                    message: "Please enter a name."
+                });
 
-            if (!rooms.has(room)) {
-                rooms.set(room, new Set());
+                return;
+
             }
 
 
-            rooms.get(room).add({
-                ws,
-                username
-            });
-
-
-            send(ws, {
-                type: "joined",
-                room,
-                username
-            });
-
-
-            // Load saved messages
             try {
 
-                const result =
+                /*
+                    See whether the room already exists.
+                */
+
+                const roomResult =
                     await pool.query(
                         `
-                        SELECT
-                            id,
-                            username,
-                            message,
-                            created_at
-                        FROM messages
+                        SELECT password_hash
+                        FROM rooms
                         WHERE room = $1
-                        ORDER BY id DESC
-                        LIMIT 100
                         `,
                         [room]
                     );
 
 
-                const history =
-                    result.rows.reverse();
+                if (roomResult.rows.length === 0) {
+
+                    /*
+                        This is a new room.
+
+                        If a password was entered,
+                        save its hash.
+                    */
+
+                    const passwordHash =
+                        password
+                            ? hashPassword(password)
+                            : null;
 
 
-                for (const msg of history) {
+                    await pool.query(
+                        `
+                        INSERT INTO rooms
+                        (room, password_hash)
+                        VALUES ($1, $2)
+                        `,
+                        [
+                            room,
+                            passwordHash
+                        ]
+                    );
 
-                    send(ws, {
-                        type: "message",
-                        id: msg.id,
-                        username: msg.username,
-                        message: msg.message,
-                        time: msg.created_at
-                    });
+
+                } else {
+
+                    /*
+                        Existing room.
+
+                        Check its password.
+                    */
+
+                    const passwordHash =
+                        roomResult.rows[0].password_hash;
+
+
+                    if (
+                        !passwordMatches(
+                            password,
+                            passwordHash
+                        )
+                    ) {
+
+                        send(ws, {
+                            type: "passwordError",
+                            message:
+                                "Incorrect room password."
+                        });
+
+                        return;
+
+                    }
 
                 }
+
+
+                /* JOIN SUCCESSFULLY */
+
+                currentRoom = room;
+                currentUser = username;
+
+
+                if (!rooms.has(room)) {
+
+                    rooms.set(
+                        room,
+                        new Set()
+                    );
+
+                }
+
+
+                rooms.get(room).add({
+                    ws,
+                    username
+                });
+
+
+                send(ws, {
+                    type: "joined",
+                    room,
+                    username
+                });
+
+
+                /* LOAD HISTORY */
+
+                try {
+
+                    const result =
+                        await pool.query(
+                            `
+                            SELECT
+                                id,
+                                username,
+                                message,
+                                created_at
+                            FROM messages
+                            WHERE room = $1
+                            ORDER BY id DESC
+                            LIMIT 100
+                            `,
+                            [room]
+                        );
+
+
+                    const history =
+                        result.rows.reverse();
+
+
+                    for (const msg of history) {
+
+                        send(ws, {
+                            type: "message",
+                            id: msg.id,
+                            username: msg.username,
+                            message: msg.message,
+                            time: msg.created_at
+                        });
+
+                    }
+
+                } catch (error) {
+
+                    console.error(
+                        "Could not load history:",
+                        error
+                    );
+
+                }
+
+
+                /* TELL OTHER USERS */
+
+                const users =
+                    rooms.get(room);
+
+
+                for (const user of users) {
+
+                    if (user.ws !== ws) {
+
+                        send(user.ws, {
+                            type: "system",
+                            message:
+                                `${username} joined the chat.`
+                        });
+
+                    }
+
+                }
+
+
+                broadcast(room, {
+                    type: "users",
+                    count: users.size
+                });
+
 
             } catch (error) {
 
                 console.error(
-                    "Could not load history:",
+                    "Join error:",
                     error
                 );
 
-            }
 
-
-            broadcastExcept(
-                room,
-                {
-                    type: "system",
+                send(ws, {
+                    type: "error",
                     message:
-                        `${username} joined the chat.`
-                },
-                ws
-            );
+                        "Could not join the room."
+                });
 
-
-            broadcast(room, {
-                type: "users",
-                count: rooms.get(room).size
-            });
+            }
 
 
             return;
         }
 
 
-        // SEND MESSAGE
+        /* =========================
+           SEND MESSAGE
+        ========================= */
+
         if (data.type === "message") {
 
             if (!currentRoom || !currentUser) {
@@ -279,19 +523,16 @@ wss.on("connection", (ws) => {
                     error
                 );
 
-                send(ws, {
-                    type: "error",
-                    message:
-                        "Message could not be saved."
-                });
-
             }
 
             return;
         }
 
 
-        // EDIT MESSAGE
+        /* =========================
+           EDIT MESSAGE
+        ========================= */
+
         if (data.type === "edit") {
 
             if (!currentRoom || !currentUser) {
@@ -327,7 +568,7 @@ wss.on("connection", (ws) => {
                         WHERE id = $2
                         AND room = $3
                         AND username = $4
-                        RETURNING id, message
+                        RETURNING id
                         `,
                         [
                             newMessage,
@@ -347,6 +588,7 @@ wss.on("connection", (ws) => {
                     });
 
                     return;
+
                 }
 
 
@@ -373,7 +615,10 @@ wss.on("connection", (ws) => {
         }
 
 
-        // DELETE MESSAGE
+        /* =========================
+           DELETE MESSAGE
+        ========================= */
+
         if (data.type === "delete") {
 
             if (!currentRoom || !currentUser) {
@@ -418,6 +663,7 @@ wss.on("connection", (ws) => {
                     });
 
                     return;
+
                 }
 
 
@@ -445,6 +691,8 @@ wss.on("connection", (ws) => {
     });
 
 
+    /* DISCONNECT */
+
     ws.on("close", () => {
 
         if (!currentRoom) {
@@ -468,6 +716,7 @@ wss.on("connection", (ws) => {
                 users.delete(user);
 
                 break;
+
             }
 
         }
@@ -504,6 +753,8 @@ wss.on("connection", (ws) => {
 });
 
 
+/* START SERVER */
+
 async function startServer() {
 
     try {
@@ -523,6 +774,7 @@ async function startServer() {
             }
         );
 
+
     } catch (error) {
 
         console.error(
@@ -530,10 +782,15 @@ async function startServer() {
             error
         );
 
+
         process.exit(1);
 
     }
 
+}
+
+
+startServer();
 }
 
 
