@@ -425,20 +425,55 @@ function addMessage(name, message, mine, time) {
         "message-time";
 
 
-    if (time) {
+  if (time) {
 
-        const date =
-            new Date(time);
+    const date = new Date(time);
+    const now = new Date();
+
+    const isToday =
+        date.toDateString() === now.toDateString();
+
+    const yesterday = new Date(now);
+
+    yesterday.setDate(
+        now.getDate() - 1
+    );
+
+    const isYesterday =
+        date.toDateString() ===
+        yesterday.toDateString();
+
+    const timeString =
+        date.toLocaleTimeString([], {
+            hour: "numeric",
+            minute: "2-digit"
+        });
+
+
+    if (isToday) {
 
         timeElement.textContent =
-            date.toLocaleDateString() +
-            " " +
-            date.toLocaleTimeString([], {
-                hour: "numeric",
-                minute: "2-digit"
-            });
+            "Today at " + timeString;
+
+    } else if (isYesterday) {
+
+        timeElement.textContent =
+            "Yesterday at " + timeString;
+
+    } else {
+
+        timeElement.textContent =
+            date.toLocaleDateString([], {
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+            }) +
+            " at " +
+            timeString;
 
     }
+
+}
 
 
     box.appendChild(nameElement);
