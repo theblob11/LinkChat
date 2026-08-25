@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1305,8 +1306,10 @@ function showToast(message) {
     toastTimer =
         setTimeout(
             () => {
+
                 toast.style.display =
                     "none";
+
             },
             3000
         );
@@ -1323,6 +1326,7 @@ function openModal(id) {
         document.getElementById(id);
 
     if (modal) {
+
         modal.style.display =
             "flex";
     }
@@ -1334,6 +1338,7 @@ function closeModal(id) {
         document.getElementById(id);
 
     if (modal) {
+
         modal.style.display =
             "none";
     }
@@ -1351,6 +1356,7 @@ document
                     event.target ===
                     modal
                 ) {
+
                     modal.style.display =
                         "none";
                 }
@@ -1453,10 +1459,13 @@ document
                 .slice(0, 1);
 
             if (!name) {
-                name = currentUsername;
+
+                name =
+                    currentUsername;
             }
 
             if (!avatar) {
+
                 avatar =
                     name
                         .charAt(0)
@@ -1509,7 +1518,9 @@ function connect() {
     if (socket) {
 
         try {
+
             socket.close();
+
         } catch {}
     }
 
@@ -1521,9 +1532,6 @@ function connect() {
     socket.addEventListener(
         "open",
         () => {
-
-            const profile =
-                loadProfile();
 
             currentUsername =
                 usernameInput.value
@@ -1540,7 +1548,9 @@ function connect() {
 
             socket.send(
                 JSON.stringify({
-                    type: "join",
+
+                    type:
+                        "join",
 
                     username:
                         currentUsername,
@@ -1619,6 +1629,7 @@ function handleServerMessage(data) {
     switch (data.type) {
 
         case "connected":
+
             break;
 
 
@@ -1720,6 +1731,7 @@ function handleServerMessage(data) {
                 data.message;
 
             if (socket) {
+
                 socket.close();
             }
 
@@ -1732,6 +1744,7 @@ function handleServerMessage(data) {
                 data.message;
 
             if (socket) {
+
                 socket.close();
             }
 
@@ -1834,6 +1847,7 @@ function handleServerMessage(data) {
             updateOwnerUI();
 
             if (data.message) {
+
                 showToast(
                     data.message
                 );
@@ -1852,6 +1866,7 @@ function handleServerMessage(data) {
             updateLockUI();
 
             if (data.message) {
+
                 showToast(
                     data.message
                 );
@@ -2025,6 +2040,7 @@ function updateUsers(users) {
         }
 
         div.appendChild(dot);
+
         div.appendChild(name);
 
         usersList.appendChild(
@@ -2041,6 +2057,7 @@ function updateUsers(users) {
 function getInitial(name) {
 
     if (!name) {
+
         return "?";
     }
 
@@ -2052,6 +2069,7 @@ function getInitial(name) {
 function formatTime(value) {
 
     if (!value) {
+
         return "";
     }
 
@@ -2063,6 +2081,7 @@ function formatTime(value) {
             date.getTime()
         )
     ) {
+
         return "";
     }
 
@@ -2083,6 +2102,7 @@ function addMessage(data) {
         );
 
     if (existing) {
+
         return;
     }
 
@@ -2204,9 +2224,6 @@ function addMessage(data) {
     reactions.className =
         "reactions";
 
-    reactions.dataset.reactions =
-        "true";
-
 
     if (data.reactions) {
 
@@ -2235,6 +2252,7 @@ function addMessage(data) {
         "😢",
         "😡"
     ];
+
 
     for (
         const reaction
@@ -2301,6 +2319,7 @@ function addMessage(data) {
                 ) {
 
                     sendData({
+
                         type:
                             "edit",
 
@@ -2341,6 +2360,7 @@ function addMessage(data) {
                 ) {
 
                     sendData({
+
                         type:
                             "delete",
 
@@ -2430,6 +2450,7 @@ function updateMessage(data) {
         );
 
     if (!element) {
+
         return;
     }
 
@@ -2439,6 +2460,7 @@ function updateMessage(data) {
         );
 
     if (!text) {
+
         return;
     }
 
@@ -2476,6 +2498,7 @@ function deleteMessageFromUI(
         );
 
     if (!element) {
+
         return;
     }
 
@@ -2496,7 +2519,9 @@ function deleteMessageFromUI(
         );
 
     if (actions) {
-        actions.innerHTML = "";
+
+        actions.innerHTML =
+            "";
     }
 
     const reactions =
@@ -2505,7 +2530,9 @@ function deleteMessageFromUI(
         );
 
     if (reactions) {
-        reactions.innerHTML = "";
+
+        reactions.innerHTML =
+            "";
     }
 }
 
@@ -2520,7 +2547,8 @@ function renderReactions(
     reactions
 ) {
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
     for (
         const [reaction, count]
@@ -2568,6 +2596,7 @@ function updateReactions(
         );
 
     if (!message) {
+
         return;
     }
 
@@ -2577,6 +2606,7 @@ function updateReactions(
         );
 
     if (!container) {
+
         return;
     }
 
@@ -2593,6 +2623,7 @@ function sendReaction(
 ) {
 
     sendData({
+
         type:
             "reaction",
 
@@ -2662,10 +2693,12 @@ function sendMessage() {
             .trim();
 
     if (!text) {
+
         return;
     }
 
     sendData({
+
         type:
             "message",
 
@@ -2677,6 +2710,7 @@ function sendMessage() {
         "";
 
     sendData({
+
         type:
             "typing",
 
@@ -2711,6 +2745,7 @@ messageInput.addEventListener(
     () => {
 
         sendData({
+
             type:
                 "typing",
 
@@ -2727,6 +2762,7 @@ messageInput.addEventListener(
                 () => {
 
                     sendData({
+
                         type:
                             "typing",
 
@@ -2790,6 +2826,7 @@ document
                 ).value;
 
             sendData({
+
                 type:
                     "changePassword",
 
@@ -2839,6 +2876,7 @@ document
             }
 
             sendData({
+
                 type:
                     "renameRoom",
 
@@ -2886,6 +2924,7 @@ document
             }
 
             sendData({
+
                 type:
                     "transferOwner",
 
@@ -2909,6 +2948,7 @@ document
         () => {
 
             sendData({
+
                 type:
                     "toggleLock"
             });
@@ -2953,6 +2993,7 @@ document
             }
 
             sendData({
+
                 type:
                     "kick",
 
@@ -2999,6 +3040,7 @@ document
             }
 
             sendData({
+
                 type:
                     "deleteRoom"
             });
@@ -3015,6 +3057,7 @@ function leaveRoom() {
     try {
 
         if (socket) {
+
             socket.close();
         }
 
