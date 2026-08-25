@@ -1486,4 +1486,4 @@ async function start() {
 }
 
 
-start();
+startserver();
