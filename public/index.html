@@ -203,7 +203,7 @@ header {
     color: #bfdbfe;
 }
 
-/* REPLY PREVIEW */
+/* REPLY */
 
 .reply-preview {
     background: rgba(0, 0, 0, 0.18);
@@ -249,12 +249,6 @@ header {
     background: rgba(255, 255, 255, .25);
 }
 
-.edited-label {
-    font-size: 10px;
-    margin-left: 5px;
-    opacity: .8;
-}
-
 /* REACTIONS */
 
 .reactions {
@@ -282,8 +276,6 @@ header {
     font-size: 11px;
     margin-left: 2px;
 }
-
-/* REACTION PICKER */
 
 .reaction-picker {
     display: flex;
@@ -315,10 +307,10 @@ header {
     margin: 12px;
 }
 
-/* ONLINE */
+/* ONLINE PANEL */
 
 #onlinePanel {
-    width: 230px;
+    width: 250px;
     flex-shrink: 0;
 
     background: #111827;
@@ -346,7 +338,7 @@ header {
     align-items: center;
     gap: 9px;
 
-    padding: 8px 5px;
+    padding: 9px 5px;
 
     font-size: 14px;
 }
@@ -357,6 +349,24 @@ header {
     border-radius: 50%;
     background: #4ade80;
     flex-shrink: 0;
+}
+
+/* OWNER */
+
+.owner-badge {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: #854d0e;
+    color: #fef08a;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.you-badge {
+    color: #93c5fd;
+    font-size: 11px;
 }
 
 /* TYPING */
@@ -636,10 +646,6 @@ header {
 
 <script>
 
-/* =========================
-   ELEMENTS
-========================= */
-
 const login =
     document.getElementById("login");
 
@@ -698,10 +704,6 @@ const cancelReply =
     document.getElementById("cancelReply");
 
 
-/* =========================
-   VARIABLES
-========================= */
-
 let socket = null;
 
 let username = "";
@@ -709,6 +711,8 @@ let username = "";
 let room = "";
 
 let password = "";
+
+let ownerUsername = "";
 
 let typingTimer = null;
 
@@ -831,17 +835,12 @@ function addMessage(
         String(id);
 
 
-    /* =========================
-       REPLY PREVIEW
-    ========================= */
-
     if (replyToId) {
 
         const repliedMessage =
             document.querySelector(
                 `.message[data-id="${replyToId}"]`
             );
-
 
         if (repliedMessage) {
 
@@ -855,13 +854,11 @@ function addMessage(
                     .querySelector(".message-text")
                     .textContent;
 
-
             const preview =
                 document.createElement("div");
 
             preview.className =
                 "reply-preview";
-
 
             const previewName =
                 document.createElement("div");
@@ -872,7 +869,6 @@ function addMessage(
             previewName.textContent =
                 repliedName;
 
-
             const previewText =
                 document.createElement("div");
 
@@ -882,7 +878,6 @@ function addMessage(
             previewText.textContent =
                 repliedText;
 
-
             preview.appendChild(
                 previewName
             );
@@ -891,14 +886,12 @@ function addMessage(
                 previewText
             );
 
-            box.appendChild(preview);
+            box.appendChild(
+                preview
+            );
         }
     }
 
-
-    /* =========================
-       NAME
-    ========================= */
 
     const nameElement =
         document.createElement("div");
@@ -910,10 +903,6 @@ function addMessage(
         name;
 
 
-    /* =========================
-       MESSAGE TEXT
-    ========================= */
-
     const messageElement =
         document.createElement("div");
 
@@ -923,10 +912,6 @@ function addMessage(
     messageElement.textContent =
         message;
 
-
-    /* =========================
-       TIME
-    ========================= */
 
     const timeElement =
         document.createElement("div");
@@ -938,16 +923,18 @@ function addMessage(
         formatTime(time);
 
 
-    box.appendChild(nameElement);
+    box.appendChild(
+        nameElement
+    );
 
-    box.appendChild(messageElement);
+    box.appendChild(
+        messageElement
+    );
 
-    box.appendChild(timeElement);
+    box.appendChild(
+        timeElement
+    );
 
-
-    /* =========================
-       ACTIONS
-    ========================= */
 
     const actions =
         document.createElement("div");
@@ -956,14 +943,11 @@ function addMessage(
         "message-actions";
 
 
-    /* REPLY BUTTON */
-
     const replyButton =
         document.createElement("button");
 
     replyButton.textContent =
         "↩️ Reply";
-
 
     replyButton.onclick =
         function() {
@@ -976,13 +960,10 @@ function addMessage(
 
         };
 
-
     actions.appendChild(
         replyButton
     );
 
-
-    /* EDIT / DELETE */
 
     if (mine) {
 
@@ -991,7 +972,6 @@ function addMessage(
 
         editButton.textContent =
             "✏️ Edit";
-
 
         editButton.onclick =
             function() {
@@ -1002,22 +982,18 @@ function addMessage(
                         messageElement.textContent
                     );
 
-
                 if (
                     newMessage === null
                 ) {
                     return;
                 }
 
-
                 const trimmed =
                     newMessage.trim();
-
 
                 if (!trimmed) {
                     return;
                 }
-
 
                 if (
                     socket &&
@@ -1032,18 +1008,14 @@ function addMessage(
                             message: trimmed
                         })
                     );
-
                 }
-
             };
-
 
         const deleteButton =
             document.createElement("button");
 
         deleteButton.textContent =
             "🗑️ Delete";
-
 
         deleteButton.onclick =
             function() {
@@ -1055,7 +1027,6 @@ function addMessage(
                 ) {
                     return;
                 }
-
 
                 if (
                     socket &&
@@ -1069,11 +1040,8 @@ function addMessage(
                             id: Number(id)
                         })
                     );
-
                 }
-
             };
-
 
         actions.appendChild(
             editButton
@@ -1082,16 +1050,13 @@ function addMessage(
         actions.appendChild(
             deleteButton
         );
-
     }
 
 
-    box.appendChild(actions);
+    box.appendChild(
+        actions
+    );
 
-
-    /* =========================
-       REACTIONS
-    ========================= */
 
     const reactionArea =
         document.createElement("div");
@@ -1099,22 +1064,16 @@ function addMessage(
     reactionArea.className =
         "reactions";
 
-
     renderReactions(
         reactionArea,
         reactions || {},
         id
     );
 
-
     box.appendChild(
         reactionArea
     );
 
-
-    /* =========================
-       REACTION PICKER
-    ========================= */
 
     const picker =
         document.createElement("div");
@@ -1123,17 +1082,14 @@ function addMessage(
         "reaction-picker";
 
 
-    const reactionList = [
+    [
         "👍",
         "❤️",
         "😂",
         "😮",
         "😢",
         "😡"
-    ];
-
-
-    reactionList.forEach(
+    ].forEach(
         function(reaction) {
 
             const button =
@@ -1141,7 +1097,6 @@ function addMessage(
 
             button.textContent =
                 reaction;
-
 
             button.onclick =
                 function() {
@@ -1153,11 +1108,9 @@ function addMessage(
 
                 };
 
-
             picker.appendChild(
                 button
             );
-
         }
     );
 
@@ -1166,8 +1119,9 @@ function addMessage(
         picker
     );
 
-
-    messages.appendChild(box);
+    messages.appendChild(
+        box
+    );
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -1175,7 +1129,7 @@ function addMessage(
 
 
 /* =========================
-   RENDER REACTIONS
+   REACTIONS
 ========================= */
 
 function renderReactions(
@@ -1186,18 +1140,14 @@ function renderReactions(
 
     container.innerHTML = "";
 
-
-    const reactionList = [
+    [
         "👍",
         "❤️",
         "😂",
         "😮",
         "😢",
         "😡"
-    ];
-
-
-    reactionList.forEach(
+    ].forEach(
         function(reaction) {
 
             const count =
@@ -1205,11 +1155,9 @@ function renderReactions(
                     reactions[reaction] || 0
                 );
 
-
             if (count <= 0) {
                 return;
             }
-
 
             const button =
                 document.createElement("button");
@@ -1218,23 +1166,7 @@ function renderReactions(
                 "reaction-button";
 
             button.textContent =
-                reaction;
-
-
-            const countElement =
-                document.createElement("span");
-
-            countElement.className =
-                "reaction-count";
-
-            countElement.textContent =
-                count;
-
-
-            button.appendChild(
-                countElement
-            );
-
+                reaction + " " + count;
 
             button.onclick =
                 function() {
@@ -1246,19 +1178,13 @@ function renderReactions(
 
                 };
 
-
             container.appendChild(
                 button
             );
-
         }
     );
 }
 
-
-/* =========================
-   SEND REACTION
-========================= */
 
 function sendReaction(
     messageId,
@@ -1273,7 +1199,6 @@ function sendReaction(
         return;
     }
 
-
     socket.send(
         JSON.stringify({
             type: "reaction",
@@ -1285,7 +1210,7 @@ function sendReaction(
 
 
 /* =========================
-   START REPLY
+   REPLY
 ========================= */
 
 function startReply(
@@ -1297,26 +1222,18 @@ function startReply(
     replyTo =
         Number(id);
 
-
     replyBarName.textContent =
         name;
-
 
     replyBarMessage.textContent =
         message;
 
-
     replyBar.style.display =
         "flex";
-
 
     messageInput.focus();
 }
 
-
-/* =========================
-   CANCEL REPLY
-========================= */
 
 function cancelReplyMode() {
 
@@ -1354,7 +1271,9 @@ function addSystemMessage(text) {
     element.textContent =
         text;
 
-    messages.appendChild(element);
+    messages.appendChild(
+        element
+    );
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -1365,10 +1284,12 @@ function addSystemMessage(text) {
    ONLINE USERS
 ========================= */
 
-function updateOnlineUsers(users) {
+function updateOnlineUsers(
+    users
+) {
 
-    onlineUsers.innerHTML = "";
-
+    onlineUsers.innerHTML =
+        "";
 
     onlineCount.textContent =
         users.length === 1
@@ -1396,20 +1317,60 @@ function updateOnlineUsers(users) {
             const nameElement =
                 document.createElement("span");
 
+
             nameElement.textContent =
+                name;
+
+
+            if (
+                name === ownerUsername
+            ) {
+
+                const badge =
+                    document.createElement("span");
+
+                badge.className =
+                    "owner-badge";
+
+                badge.textContent =
+                    "👑 OWNER";
+
+                nameElement.appendChild(
+                    badge
+                );
+            }
+
+
+            if (
                 name === username
-                    ? name + " (you)"
-                    : name;
+            ) {
+
+                const you =
+                    document.createElement("span");
+
+                you.className =
+                    "you-badge";
+
+                you.textContent =
+                    " (you)";
+
+                nameElement.appendChild(
+                    you
+                );
+            }
 
 
-            user.appendChild(dot);
+            user.appendChild(
+                dot
+            );
 
             user.appendChild(
                 nameElement
             );
 
-            onlineUsers.appendChild(user);
-
+            onlineUsers.appendChild(
+                user
+            );
         }
     );
 }
@@ -1426,8 +1387,9 @@ function updateTypingIndicator() {
             currentlyTyping
         );
 
-
-    if (names.length === 0) {
+    if (
+        names.length === 0
+    ) {
 
         typingIndicator.textContent =
             "";
@@ -1435,8 +1397,9 @@ function updateTypingIndicator() {
         return;
     }
 
-
-    if (names.length === 1) {
+    if (
+        names.length === 1
+    ) {
 
         typingIndicator.textContent =
             `${names[0]} is typing...`;
@@ -1444,15 +1407,15 @@ function updateTypingIndicator() {
         return;
     }
 
-
-    if (names.length === 2) {
+    if (
+        names.length === 2
+    ) {
 
         typingIndicator.textContent =
             `${names[0]} and ${names[1]} are typing...`;
 
         return;
     }
-
 
     typingIndicator.textContent =
         `${names.length} people are typing...`;
@@ -1470,7 +1433,6 @@ function sendTypingStatus(
     ) {
         return;
     }
-
 
     socket.send(
         JSON.stringify({
@@ -1552,7 +1514,6 @@ function connect() {
 
             let data;
 
-
             try {
 
                 data =
@@ -1575,9 +1536,56 @@ function connect() {
                 roomTitle.textContent =
                     data.room;
 
-                setComposerEnabled(true);
+                ownerUsername =
+                    data.owner || "";
+
+                setComposerEnabled(
+                    true
+                );
 
                 messageInput.focus();
+
+                return;
+            }
+
+
+            /* OWNER */
+
+            if (
+                data.type === "owner"
+            ) {
+
+                ownerUsername =
+                    data.owner || "";
+
+                /*
+                   Refresh online list so
+                   the owner badge appears.
+                */
+
+                const currentUsers =
+                    Array.from(
+                        document.querySelectorAll(
+                            ".online-user span"
+                        )
+                    )
+                    .map(
+                        element =>
+                            element.textContent
+                                .replace(
+                                    "👑 OWNER",
+                                    ""
+                                )
+                                .replace(
+                                    " (you)",
+                                    ""
+                                )
+                                .trim()
+                    );
+
+                updateOnlineUsers(
+                    currentUsers
+                );
 
                 return;
             }
@@ -1594,8 +1602,9 @@ function connect() {
                     "Incorrect room password."
                 );
 
-
-                setComposerEnabled(false);
+                setComposerEnabled(
+                    false
+                );
 
                 chat.style.display =
                     "none";
@@ -1605,11 +1614,9 @@ function connect() {
 
                 passwordInput.focus();
 
-
                 if (socket) {
                     socket.close();
                 }
-
 
                 return;
             }
@@ -1631,12 +1638,11 @@ function connect() {
                     data.reactions
                 );
 
-
                 return;
             }
 
 
-            /* MESSAGE EDITED */
+            /* EDIT */
 
             if (
                 data.type ===
@@ -1648,7 +1654,6 @@ function connect() {
                         `.message[data-id="${data.id}"]`
                     );
 
-
                 if (element) {
 
                     const text =
@@ -1656,40 +1661,19 @@ function connect() {
                             ".message-text"
                         );
 
-
                     if (text) {
 
                         text.textContent =
-                            data.message;
-
-
-                        const label =
-                            document.createElement(
-                                "span"
-                            );
-
-
-                        label.className =
-                            "edited-label";
-
-
-                        label.textContent =
-                            "(edited)";
-
-
-                        text.appendChild(
-                            label
-                        );
-
+                            data.message +
+                            " (edited)";
                     }
                 }
-
 
                 return;
             }
 
 
-            /* MESSAGE DELETED */
+            /* DELETE */
 
             if (
                 data.type ===
@@ -1701,11 +1685,9 @@ function connect() {
                         `.message[data-id="${data.id}"]`
                     );
 
-
                 if (element) {
                     element.remove();
                 }
-
 
                 return;
             }
@@ -1723,27 +1705,22 @@ function connect() {
                         `.message[data-id="${data.id}"]`
                     );
 
-
                 if (element) {
 
-                    const reactionArea =
+                    const area =
                         element.querySelector(
                             ".reactions"
                         );
 
-
-                    if (reactionArea) {
+                    if (area) {
 
                         renderReactions(
-                            reactionArea,
+                            area,
                             data.reactions || {},
                             data.id
                         );
-
                     }
-
                 }
-
 
                 return;
             }
@@ -1759,12 +1736,11 @@ function connect() {
                     data.message
                 );
 
-
                 return;
             }
 
 
-            /* ONLINE */
+            /* USERS */
 
             if (
                 data.type === "users"
@@ -1773,7 +1749,6 @@ function connect() {
                 updateOnlineUsers(
                     data.users || []
                 );
-
 
                 return;
             }
@@ -1796,12 +1771,9 @@ function connect() {
                     currentlyTyping.delete(
                         data.username
                     );
-
                 }
 
-
                 updateTypingIndicator();
-
 
                 return;
             }
@@ -1816,7 +1788,6 @@ function connect() {
                 addSystemMessage(
                     data.message
                 );
-
             }
 
         }
@@ -1827,14 +1798,14 @@ function connect() {
         "close",
         function() {
 
-            setComposerEnabled(false);
-
+            setComposerEnabled(
+                false
+            );
 
             setStatus(
                 "disconnected",
                 "🔴 Disconnected"
             );
-
         }
     );
 }
@@ -1891,7 +1862,6 @@ function joinChat() {
     login.style.display =
         "none";
 
-
     chat.style.display =
         "flex";
 
@@ -1915,11 +1885,13 @@ function joinChat() {
 
     currentlyTyping.clear();
 
+    ownerUsername = "";
 
     cancelReplyMode();
 
-
-    setComposerEnabled(false);
+    setComposerEnabled(
+        false
+    );
 
 
     connect();
@@ -1965,9 +1937,7 @@ function sendMessage() {
     messageInput.value =
         "";
 
-
     cancelReplyMode();
-
 
     messageInput.focus();
 }
@@ -1981,7 +1951,6 @@ joinButton.addEventListener(
     "click",
     joinChat
 );
-
 
 sendButton.addEventListener(
     "click",
@@ -1997,29 +1966,33 @@ usernameInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
             joinChat();
         }
     }
 );
-
 
 roomInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
             joinChat();
         }
     }
 );
 
-
 passwordInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
             joinChat();
         }
     }
@@ -2036,17 +2009,17 @@ messageInput.addEventListener(
 
         sendTypingStatus(true);
 
-
         clearTimeout(
             typingTimer
         );
-
 
         typingTimer =
             setTimeout(
                 function() {
 
-                    sendTypingStatus(false);
+                    sendTypingStatus(
+                        false
+                    );
 
                 },
                 1200
@@ -2090,10 +2063,8 @@ copyButton.addEventListener(
                 window.location.href
             );
 
-
             copyButton.textContent =
                 "✓ Copied!";
-
 
             setTimeout(
                 function() {
@@ -2105,7 +2076,6 @@ copyButton.addEventListener(
                 1500
             );
 
-
         } catch {
 
             alert(
@@ -2115,6 +2085,10 @@ copyButton.addEventListener(
     }
 );
 
+</script>
+
+</body>
+</html>
 </script>
 
 </body>
