@@ -55,12 +55,10 @@ async function setupDatabase() {
         )
     `);
 
-
     await pool.query(`
         ALTER TABLE messages
         ADD COLUMN IF NOT EXISTS reply_to INTEGER
     `);
-
 
     await pool.query(`
         CREATE TABLE IF NOT EXISTS rooms (
@@ -70,18 +68,10 @@ async function setupDatabase() {
         )
     `);
 
-
-    /*
-       If your rooms table existed before
-       the owner system was added, this makes
-       sure the column exists.
-    */
-
     await pool.query(`
         ALTER TABLE rooms
         ADD COLUMN IF NOT EXISTS owner_username TEXT
     `);
-
 
     await pool.query(`
         CREATE TABLE IF NOT EXISTS reactions (
@@ -94,13 +84,12 @@ async function setupDatabase() {
         )
     `);
 
-
     console.log("Database ready.");
 }
 
 
 /* =========================
-   ROOM CONNECTIONS
+   ACTIVE ROOMS
 ========================= */
 
 const rooms = new Map();
@@ -116,13 +105,10 @@ function send(ws, data) {
         ws.readyState ===
         WebSocket.OPEN
     ) {
-
         ws.send(
             JSON.stringify(data)
         );
-
     }
-
 }
 
 
@@ -135,11 +121,9 @@ function broadcast(room, data) {
     const users =
         rooms.get(room);
 
-
     if (!users) {
         return;
     }
-
 
     for (const user of users) {
 
@@ -149,7 +133,6 @@ function broadcast(room, data) {
         );
 
     }
-
 }
 
 
@@ -162,35 +145,22 @@ function getOnlineUsers(room) {
     const users =
         rooms.get(room);
 
-
     if (!users) {
         return [];
     }
 
-
     return Array.from(users).map(
         user => user.username
     );
-
 }
 
 
 function updateOnlineUsers(room) {
 
-    const users =
-        rooms.get(room);
-
-
-    if (!users) {
-        return;
-    }
-
-
     broadcast(room, {
         type: "users",
-
-        count: users.size,
-
+        count:
+            getOnlineUsers(room).length,
         users:
             getOnlineUsers(room)
     });
@@ -241,19 +211,14 @@ async function getReactions(messageId) {
             [messageId]
         );
 
-
     const reactions = {};
-
 
     for (
         const row of result.rows
     ) {
-
         reactions[row.reaction] =
             row.count;
-
     }
-
 
     return reactions;
 }
@@ -266,16 +231,13 @@ async function getReactions(messageId) {
 wss.on("connection", (ws) => {
 
     let currentRoom = null;
-
     let currentUser = null;
-
     let isRoomOwner = false;
 
 
     ws.on("message", async (raw) => {
 
         let data;
-
 
         try {
 
@@ -297,7 +259,7 @@ wss.on("connection", (ws) => {
 
 
         /* =========================
-           JOIN ROOM
+           JOIN
         ========================= */
 
         if (
@@ -311,7 +273,6 @@ wss.on("connection", (ws) => {
                 .trim()
                 .slice(0, 100);
 
-
             const username =
                 String(
                     data.username ||
@@ -319,7 +280,6 @@ wss.on("connection", (ws) => {
                 )
                 .trim()
                 .slice(0, 30);
-
 
             const password =
                 String(
@@ -353,10 +313,6 @@ wss.on("connection", (ws) => {
 
             try {
 
-                /*
-                   Look for the room.
-                */
-
                 const result =
                     await pool.query(
                         `
@@ -373,9 +329,7 @@ wss.on("connection", (ws) => {
                 let ownerUsername;
 
 
-                /* =========================
-                   NEW ROOM
-                ========================= */
+                /* NEW ROOM */
 
                 if (
                     result.rows.length === 0
@@ -385,12 +339,6 @@ wss.on("connection", (ws) => {
                         password.length > 0
                             ? hashPassword(password)
                             : null;
-
-
-                    /*
-                       The first person to create
-                       the room becomes the owner.
-                    */
 
                     ownerUsername =
                         username;
@@ -416,23 +364,16 @@ wss.on("connection", (ws) => {
 
                 } else {
 
-                    /* =========================
-                       EXISTING ROOM
-                    ========================= */
+                    /* EXISTING ROOM */
 
                     const savedHash =
                         result.rows[0]
                             .password_hash;
 
-
                     ownerUsername =
                         result.rows[0]
                             .owner_username;
 
-
-                    /*
-                       Password check.
-                    */
 
                     if (savedHash) {
 
@@ -457,24 +398,19 @@ wss.on("connection", (ws) => {
 
                             return;
                         }
-
                     }
 
 
                     /*
-                       Older rooms may not have
-                       an owner yet.
-
-                       If that happens, the first
-                       person joining after this
-                       update becomes owner.
+                       Older rooms without an owner
+                       get an owner the first time
+                       someone joins.
                     */
 
                     if (!ownerUsername) {
 
                         ownerUsername =
                             username;
-
 
                         await pool.query(
                             `
@@ -487,9 +423,7 @@ wss.on("connection", (ws) => {
                                 room
                             ]
                         );
-
                     }
-
                 }
 
 
@@ -499,15 +433,10 @@ wss.on("connection", (ws) => {
                 currentUser =
                     username;
 
-
                 isRoomOwner =
                     username ===
                     ownerUsername;
 
-
-                /* =========================
-                   ADD USER TO ROOM
-                ========================= */
 
                 if (
                     !rooms.has(room)
@@ -517,11 +446,11 @@ wss.on("connection", (ws) => {
                         room,
                         new Set()
                     );
-
                 }
 
 
                 const user = {
+
                     ws: ws,
 
                     username:
@@ -537,15 +466,15 @@ wss.on("connection", (ws) => {
                     .add(user);
 
 
-                /* =========================
-                   JOINED
-                ========================= */
+                /* JOINED */
 
                 send(ws, {
 
-                    type: "joined",
+                    type:
+                        "joined",
 
-                    room: room,
+                    room:
+                        room,
 
                     username:
                         username,
@@ -559,9 +488,7 @@ wss.on("connection", (ws) => {
                 });
 
 
-                /* =========================
-                   MESSAGE HISTORY
-                ========================= */
+                /* HISTORY */
 
                 const history =
                     await pool.query(
@@ -614,15 +541,9 @@ wss.on("connection", (ws) => {
 
                         reactions:
                             reactions
-
                     });
-
                 }
 
-
-                /* =========================
-                   TELL ROOM ABOUT JOIN
-                ========================= */
 
                 broadcast(room, {
 
@@ -631,13 +552,8 @@ wss.on("connection", (ws) => {
 
                     message:
                         `${username} joined the chat.`
-
                 });
 
-
-                /*
-                   Tell everybody who the owner is.
-                */
 
                 broadcast(room, {
 
@@ -646,11 +562,12 @@ wss.on("connection", (ws) => {
 
                     owner:
                         ownerUsername
-
                 });
 
 
-                updateOnlineUsers(room);
+                updateOnlineUsers(
+                    room
+                );
 
 
             } catch (error) {
@@ -660,7 +577,6 @@ wss.on("connection", (ws) => {
                     error
                 );
 
-
                 send(ws, {
 
                     type:
@@ -668,10 +584,190 @@ wss.on("connection", (ws) => {
 
                     message:
                         "Could not join the room."
+                });
+            }
 
+            return;
+        }
+
+
+        /* =========================
+           OWNER: KICK USER
+        ========================= */
+
+        if (
+            data.type === "kick"
+        ) {
+
+            /*
+               Security check:
+               only the actual room owner
+               can perform this action.
+            */
+
+            if (
+                !currentRoom ||
+                !currentUser ||
+                !isRoomOwner
+            ) {
+
+                send(ws, {
+
+                    type:
+                        "error",
+
+                    message:
+                        "Only the room owner can kick users."
                 });
 
+                return;
             }
+
+
+            const targetUsername =
+                String(
+                    data.username || ""
+                )
+                .trim();
+
+
+            if (
+                !targetUsername
+            ) {
+                return;
+            }
+
+
+            /*
+               Owner cannot kick themselves.
+            */
+
+            if (
+                targetUsername ===
+                currentUser
+            ) {
+
+                send(ws, {
+
+                    type:
+                        "error",
+
+                    message:
+                        "You cannot kick yourself."
+                });
+
+                return;
+            }
+
+
+            const users =
+                rooms.get(
+                    currentRoom
+                );
+
+
+            if (!users) {
+                return;
+            }
+
+
+            let targetUser = null;
+
+
+            for (
+                const user
+                of users
+            ) {
+
+                if (
+                    user.username ===
+                    targetUsername
+                ) {
+
+                    targetUser =
+                        user;
+
+                    break;
+                }
+            }
+
+
+            if (!targetUser) {
+
+                send(ws, {
+
+                    type:
+                        "error",
+
+                    message:
+                        "That user is not online."
+                });
+
+                return;
+            }
+
+
+            /*
+               Tell the person being kicked.
+            */
+
+            send(
+                targetUser.ws,
+                {
+
+                    type:
+                        "kicked",
+
+                    message:
+                        "You were kicked from this room by the owner."
+                }
+            );
+
+
+            /*
+               Remove them from the active room.
+            */
+
+            users.delete(
+                targetUser
+            );
+
+
+            /*
+               Close their connection.
+            */
+
+            try {
+
+                targetUser.ws.close();
+
+            } catch {
+
+                // Ignore close errors.
+
+            }
+
+
+            /*
+               Tell everybody else.
+            */
+
+            broadcast(
+                currentRoom,
+                {
+
+                    type:
+                        "system",
+
+                    message:
+                        `${targetUsername} was kicked by the owner.`
+                }
+            );
+
+
+            updateOnlineUsers(
+                currentRoom
+            );
 
 
             return;
@@ -728,12 +824,9 @@ wss.on("connection", (ws) => {
                                 Boolean(
                                     data.typing
                                 )
-
                         }
                     );
-
                 }
-
             }
 
 
@@ -742,7 +835,7 @@ wss.on("connection", (ws) => {
 
 
         /* =========================
-           SEND MESSAGE
+           MESSAGE
         ========================= */
 
         if (
@@ -770,8 +863,7 @@ wss.on("connection", (ws) => {
             }
 
 
-            let replyTo =
-                null;
+            let replyTo = null;
 
 
             if (
@@ -814,11 +906,8 @@ wss.on("connection", (ws) => {
 
                         replyTo =
                             number;
-
                     }
-
                 }
-
             }
 
 
@@ -875,7 +964,6 @@ wss.on("connection", (ws) => {
                             saved.created_at,
 
                         reactions: {}
-
                     }
                 );
 
@@ -886,7 +974,6 @@ wss.on("connection", (ws) => {
                     "Save message error:",
                     error
                 );
-
             }
 
 
@@ -895,7 +982,7 @@ wss.on("connection", (ws) => {
 
 
         /* =========================
-           EDIT MESSAGE
+           EDIT
         ========================= */
 
         if (
@@ -963,7 +1050,6 @@ wss.on("connection", (ws) => {
 
                         message:
                             "You can only edit your own messages."
-
                     });
 
                     return;
@@ -982,7 +1068,6 @@ wss.on("connection", (ws) => {
 
                         message:
                             newMessage
-
                     }
                 );
 
@@ -993,7 +1078,6 @@ wss.on("connection", (ws) => {
                     "Edit error:",
                     error
                 );
-
             }
 
 
@@ -1002,7 +1086,7 @@ wss.on("connection", (ws) => {
 
 
         /* =========================
-           DELETE MESSAGE
+           DELETE
         ========================= */
 
         if (
@@ -1059,7 +1143,6 @@ wss.on("connection", (ws) => {
 
                         message:
                             "You can only delete your own messages."
-
                     });
 
                     return;
@@ -1084,7 +1167,6 @@ wss.on("connection", (ws) => {
 
                         id:
                             messageId
-
                     }
                 );
 
@@ -1095,7 +1177,6 @@ wss.on("connection", (ws) => {
                     "Delete error:",
                     error
                 );
-
             }
 
 
@@ -1224,7 +1305,6 @@ wss.on("connection", (ws) => {
                                 currentUser
                             ]
                         );
-
                     }
 
                 } else {
@@ -1245,7 +1325,6 @@ wss.on("connection", (ws) => {
                             reaction
                         ]
                     );
-
                 }
 
 
@@ -1267,7 +1346,6 @@ wss.on("connection", (ws) => {
 
                         reactions:
                             reactions
-
                     }
                 );
 
@@ -1278,7 +1356,6 @@ wss.on("connection", (ws) => {
                     "Reaction error:",
                     error
                 );
-
             }
 
 
@@ -1325,7 +1402,6 @@ wss.on("connection", (ws) => {
 
                 break;
             }
-
         }
 
 
@@ -1341,39 +1417,41 @@ wss.on("connection", (ws) => {
 
                 typing:
                     false
-
             }
         );
 
 
-        broadcast(
-            currentRoom,
-            {
-
-                type:
-                    "system",
-
-                message:
-                    `${currentUser || "Someone"} left the chat.`
-
-            }
-        );
-
+        /*
+           Don't announce a normal leave
+           if this connection was already
+           removed by a kick.
+        */
 
         if (
-            users.size === 0
+            users.size > 0
         ) {
 
-            rooms.delete(
-                currentRoom
-            );
+            broadcast(
+                currentRoom,
+                {
 
-        } else {
+                    type:
+                        "system",
+
+                    message:
+                        `${currentUser || "Someone"} left the chat.`
+                }
+            );
 
             updateOnlineUsers(
                 currentRoom
             );
 
+        } else {
+
+            rooms.delete(
+                currentRoom
+            );
         }
 
     });
@@ -1382,7 +1460,7 @@ wss.on("connection", (ws) => {
 
 
 /* =========================
-   START SERVER
+   START
 ========================= */
 
 async function startServer() {
@@ -1412,10 +1490,8 @@ async function startServer() {
             error
         );
 
-
         process.exit(1);
     }
-
 }
 
 
