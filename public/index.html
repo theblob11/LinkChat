@@ -178,7 +178,15 @@ header {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
 }
+.message-time {
+    font-size: 11px;
+    color: #94a3b8;
+    margin-top: 5px;
+}
 
+.mine .message-time {
+    color: #bfdbfe;
+}
 .system {
     text-align: center;
     color: #64748b;
@@ -405,8 +413,46 @@ function setStatus(type, text) {
 
 /* Add a normal message */
 
-function addMessage(name, message, mine) {
+function addMessage(name, message, mine, time) {
 
+    const box = document.createElement("div");
+    box.className = "message";
+
+    if (mine) {
+        box.classList.add("mine");
+    }
+
+    const nameElement = document.createElement("div");
+    nameElement.className = "name";
+    nameElement.textContent = name;
+
+    const messageElement = document.createElement("div");
+    messageElement.className = "message-text";
+    messageElement.textContent = message;
+
+    const timeElement = document.createElement("div");
+    timeElement.className = "message-time";
+
+    if (time) {
+        const date = new Date(time);
+
+        timeElement.textContent =
+            date.toLocaleDateString() +
+            " " +
+            date.toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit"
+            });
+    }
+
+    box.appendChild(nameElement);
+    box.appendChild(messageElement);
+    box.appendChild(timeElement);
+
+    messages.appendChild(box);
+
+    messages.scrollTop = messages.scrollHeight;
+}
     const box =
         document.createElement("div");
 
@@ -609,9 +655,11 @@ function connect() {
             if (data.type === "message") {
 
                 addMessage(
-                    data.username,
-                    data.message,
-                    data.username === username
+    data.username,
+    data.message,
+    data.username === username,
+    data.time
+);
                 );
 
                 return;
