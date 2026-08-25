@@ -335,6 +335,21 @@ header {
     margin-bottom: 12px;
 }
 
+#changePasswordButton {
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 9px;
+    border: 0;
+    border-radius: 8px;
+    background: #7c3aed;
+    color: white;
+    font-weight: bold;
+}
+
+#changePasswordButton:hover {
+    background: #6d28d9;
+}
+
 .owner-user {
     display: flex;
     align-items: center;
@@ -588,25 +603,13 @@ header {
                     👑 Owner Controls
                 </div>
 
-               <div class="owner-help">
-    You are the room owner.
-</div>
+                <div class="owner-help">
+                    You are the room owner.
+                </div>
 
-<button
-    id="changePasswordButton"
-    style="
-        width:100%;
-        margin-bottom:12px;
-        padding:9px;
-        border:0;
-        border-radius:8px;
-        background:#7c3aed;
-        color:white;
-        font-weight:bold;
-    "
->
-    🔒 Change Room Password
-</button>
+                <button id="changePasswordButton">
+                    🔒 Change Room Password
+                </button>
 
                 <div id="ownerUsers"></div>
 
@@ -671,27 +674,47 @@ header {
 
 <script>
 
-const login = document.getElementById("login");
-const chat = document.getElementById("chat");
+const login =
+    document.getElementById("login");
 
-const usernameInput = document.getElementById("username");
-const roomInput = document.getElementById("room");
-const passwordInput = document.getElementById("password");
+const chat =
+    document.getElementById("chat");
 
-const joinButton = document.getElementById("joinButton");
+const usernameInput =
+    document.getElementById("username");
 
-const roomTitle = document.getElementById("roomTitle");
-const statusElement = document.getElementById("status");
+const roomInput =
+    document.getElementById("room");
 
-const messages = document.getElementById("messages");
+const passwordInput =
+    document.getElementById("password");
 
-const messageInput = document.getElementById("messageInput");
-const sendButton = document.getElementById("sendButton");
+const joinButton =
+    document.getElementById("joinButton");
 
-const copyButton = document.getElementById("copyButton");
+const roomTitle =
+    document.getElementById("roomTitle");
 
-const onlineUsers = document.getElementById("onlineUsers");
-const onlineCount = document.getElementById("onlineCount");
+const statusElement =
+    document.getElementById("status");
+
+const messages =
+    document.getElementById("messages");
+
+const messageInput =
+    document.getElementById("messageInput");
+
+const sendButton =
+    document.getElementById("sendButton");
+
+const copyButton =
+    document.getElementById("copyButton");
+
+const onlineUsers =
+    document.getElementById("onlineUsers");
+
+const onlineCount =
+    document.getElementById("onlineCount");
 
 const ownerControls =
     document.getElementById("ownerControls");
@@ -699,20 +722,33 @@ const ownerControls =
 const ownerUsers =
     document.getElementById("ownerUsers");
 
+const changePasswordButton =
+    document.getElementById(
+        "changePasswordButton"
+    );
+
 const typingIndicator =
-    document.getElementById("typingIndicator");
+    document.getElementById(
+        "typingIndicator"
+    );
 
 const replyBar =
     document.getElementById("replyBar");
 
 const replyBarName =
-    document.getElementById("replyBarName");
+    document.getElementById(
+        "replyBarName"
+    );
 
 const replyBarMessage =
-    document.getElementById("replyBarMessage");
+    document.getElementById(
+        "replyBarMessage"
+    );
 
 const cancelReply =
-    document.getElementById("cancelReply");
+    document.getElementById(
+        "cancelReply"
+    );
 
 
 let socket = null;
@@ -727,7 +763,9 @@ let isOwner = false;
 let onlineUserList = [];
 
 let typingTimer = null;
-let currentlyTyping = new Set();
+
+let currentlyTyping =
+    new Set();
 
 let replyTo = null;
 
@@ -753,7 +791,10 @@ if (urlRoom) {
    STATUS
 ========================= */
 
-function setStatus(type, text) {
+function setStatus(
+    type,
+    text
+) {
 
     statusElement.className =
         "status " + type;
@@ -769,10 +810,15 @@ function setStatus(type, text) {
 
 function formatTime(time) {
 
-    if (!time) return "";
+    if (!time) {
+        return "";
+    }
 
-    const date = new Date(time);
-    const now = new Date();
+    const date =
+        new Date(time);
+
+    const now =
+        new Date();
 
     if (
         date.toDateString() ===
@@ -781,24 +827,33 @@ function formatTime(time) {
 
         return (
             "Today at " +
-            date.toLocaleTimeString([], {
-                hour: "numeric",
-                minute: "2-digit"
-            })
+            date.toLocaleTimeString(
+                [],
+                {
+                    hour: "numeric",
+                    minute: "2-digit"
+                }
+            )
         );
     }
 
     return (
-        date.toLocaleDateString([], {
-            month: "short",
-            day: "numeric",
-            year: "numeric"
-        }) +
+        date.toLocaleDateString(
+            [],
+            {
+                month: "short",
+                day: "numeric",
+                year: "numeric"
+            }
+        ) +
         " at " +
-        date.toLocaleTimeString([], {
-            hour: "numeric",
-            minute: "2-digit"
-        })
+        date.toLocaleTimeString(
+            [],
+            {
+                hour: "numeric",
+                minute: "2-digit"
+            }
+        )
     );
 }
 
@@ -820,13 +875,15 @@ function addMessage(
     const box =
         document.createElement("div");
 
-    box.className = "message";
+    box.className =
+        "message";
 
     if (mine) {
         box.classList.add("mine");
     }
 
-    box.dataset.id = String(id);
+    box.dataset.id =
+        String(id);
 
 
     if (replyToId) {
@@ -839,19 +896,27 @@ function addMessage(
         if (replied) {
 
             const preview =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             preview.className =
                 "reply-preview";
 
             const repliedName =
-                replied.querySelector(".name");
+                replied.querySelector(
+                    ".name"
+                );
 
             const repliedText =
-                replied.querySelector(".message-text");
+                replied.querySelector(
+                    ".message-text"
+                );
 
             const nameElement =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             nameElement.className =
                 "reply-name";
@@ -860,7 +925,9 @@ function addMessage(
                 repliedName.textContent;
 
             const textElement =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             textElement.className =
                 "reply-text";
@@ -868,10 +935,17 @@ function addMessage(
             textElement.textContent =
                 repliedText.textContent;
 
-            preview.appendChild(nameElement);
-            preview.appendChild(textElement);
+            preview.appendChild(
+                nameElement
+            );
 
-            box.appendChild(preview);
+            preview.appendChild(
+                textElement
+            );
+
+            box.appendChild(
+                preview
+            );
         }
     }
 
@@ -879,14 +953,21 @@ function addMessage(
     const nameElement =
         document.createElement("div");
 
-    nameElement.className = "name";
-    nameElement.textContent = name;
+    nameElement.className =
+        "name";
+
+    nameElement.textContent =
+        name;
 
 
-    if (name === ownerUsername) {
+    if (
+        name === ownerUsername
+    ) {
 
         const badge =
-            document.createElement("span");
+            document.createElement(
+                "span"
+            );
 
         badge.className =
             "owner-badge";
@@ -894,12 +975,16 @@ function addMessage(
         badge.textContent =
             "👑 OWNER";
 
-        nameElement.appendChild(badge);
+        nameElement.appendChild(
+            badge
+        );
     }
 
 
     const messageElement =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     messageElement.className =
         "message-text";
@@ -909,7 +994,9 @@ function addMessage(
 
 
     const timeElement =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     timeElement.className =
         "message-time";
@@ -918,20 +1005,32 @@ function addMessage(
         formatTime(time);
 
 
-    box.appendChild(nameElement);
-    box.appendChild(messageElement);
-    box.appendChild(timeElement);
+    box.appendChild(
+        nameElement
+    );
+
+    box.appendChild(
+        messageElement
+    );
+
+    box.appendChild(
+        timeElement
+    );
 
 
     const actions =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     actions.className =
         "message-actions";
 
 
     const replyButton =
-        document.createElement("button");
+        document.createElement(
+            "button"
+        );
 
     replyButton.textContent =
         "↩️ Reply";
@@ -943,13 +1042,17 @@ function addMessage(
             message
         );
 
-    actions.appendChild(replyButton);
+    actions.appendChild(
+        replyButton
+    );
 
 
     if (mine) {
 
         const editButton =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
 
         editButton.textContent =
             "✏️ Edit";
@@ -960,10 +1063,13 @@ function addMessage(
                 const newMessage =
                     prompt(
                         "Edit your message:",
-                        messageElement.textContent
+                        messageElement
+                            .textContent
                     );
 
-                if (newMessage === null) {
+                if (
+                    newMessage === null
+                ) {
                     return;
                 }
 
@@ -983,7 +1089,9 @@ function addMessage(
 
 
         const deleteButton =
-            document.createElement("button");
+            document.createElement(
+                "button"
+            );
 
         deleteButton.textContent =
             "🗑️ Delete";
@@ -1006,16 +1114,25 @@ function addMessage(
             };
 
 
-        actions.appendChild(editButton);
-        actions.appendChild(deleteButton);
+        actions.appendChild(
+            editButton
+        );
+
+        actions.appendChild(
+            deleteButton
+        );
     }
 
 
-    box.appendChild(actions);
+    box.appendChild(
+        actions
+    );
 
 
     const reactionArea =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     reactionArea.className =
         "reactions";
@@ -1026,11 +1143,15 @@ function addMessage(
         id
     );
 
-    box.appendChild(reactionArea);
+    box.appendChild(
+        reactionArea
+    );
 
 
     const picker =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     picker.className =
         "reaction-picker";
@@ -1043,27 +1164,38 @@ function addMessage(
         "😮",
         "😢",
         "😡"
-    ].forEach(reaction => {
+    ].forEach(
+        reaction => {
 
-        const button =
-            document.createElement("button");
+            const button =
+                document.createElement(
+                    "button"
+                );
 
-        button.textContent =
-            reaction;
+            button.textContent =
+                reaction;
 
-        button.onclick =
-            () => sendReaction(
-                id,
-                reaction
+            button.onclick =
+                () =>
+                    sendReaction(
+                        id,
+                        reaction
+                    );
+
+            picker.appendChild(
+                button
             );
+        }
+    );
 
-        picker.appendChild(button);
-    });
 
+    box.appendChild(
+        picker
+    );
 
-    box.appendChild(picker);
-
-    messages.appendChild(box);
+    messages.appendChild(
+        box
+    );
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -1080,7 +1212,8 @@ function renderReactions(
     messageId
 ) {
 
-    container.innerHTML = "";
+    container.innerHTML =
+        "";
 
     [
         "👍",
@@ -1089,34 +1222,45 @@ function renderReactions(
         "😮",
         "😢",
         "😡"
-    ].forEach(reaction => {
+    ].forEach(
+        reaction => {
 
-        const count =
-            Number(
-                reactions[reaction] || 0
+            const count =
+                Number(
+                    reactions[
+                        reaction
+                    ] || 0
+                );
+
+            if (count <= 0) {
+                return;
+            }
+
+            const button =
+                document.createElement(
+                    "button"
+                );
+
+            button.className =
+                "reaction-button";
+
+            button.textContent =
+                reaction +
+                " " +
+                count;
+
+            button.onclick =
+                () =>
+                    sendReaction(
+                        messageId,
+                        reaction
+                    );
+
+            container.appendChild(
+                button
             );
-
-        if (count <= 0) {
-            return;
         }
-
-        const button =
-            document.createElement("button");
-
-        button.className =
-            "reaction-button";
-
-        button.textContent =
-            reaction + " " + count;
-
-        button.onclick =
-            () => sendReaction(
-                messageId,
-                reaction
-            );
-
-        container.appendChild(button);
-    });
+    );
 }
 
 
@@ -1142,7 +1286,7 @@ function sendSocket(data) {
     if (
         !socket ||
         socket.readyState !==
-        WebSocket.OPEN
+            WebSocket.OPEN
     ) {
         return false;
     }
@@ -1165,7 +1309,8 @@ function startReply(
     message
 ) {
 
-    replyTo = Number(id);
+    replyTo =
+        Number(id);
 
     replyBarName.textContent =
         name;
@@ -1205,15 +1350,24 @@ cancelReply.addEventListener(
    SYSTEM MESSAGE
 ========================= */
 
-function addSystemMessage(text) {
+function addSystemMessage(
+    text
+) {
 
     const element =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
-    element.className = "system";
-    element.textContent = text;
+    element.className =
+        "system";
 
-    messages.appendChild(element);
+    element.textContent =
+        text;
+
+    messages.appendChild(
+        element
+    );
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -1248,11 +1402,6 @@ function updateOwnerControls() {
     onlineUserList.forEach(
         name => {
 
-            /*
-               Don't show a kick button
-               next to the owner.
-            */
-
             if (
                 name === username
             ) {
@@ -1261,14 +1410,18 @@ function updateOwnerControls() {
 
 
             const row =
-                document.createElement("div");
+                document.createElement(
+                    "div"
+                );
 
             row.className =
                 "owner-user";
 
 
             const nameElement =
-                document.createElement("span");
+                document.createElement(
+                    "span"
+                );
 
             nameElement.className =
                 "owner-user-name";
@@ -1278,7 +1431,9 @@ function updateOwnerControls() {
 
 
             const kickButton =
-                document.createElement("button");
+                document.createElement(
+                    "button"
+                );
 
             kickButton.className =
                 "kick-button";
@@ -1290,15 +1445,13 @@ function updateOwnerControls() {
             kickButton.onclick =
                 () => {
 
-                    const confirmed =
-                        confirm(
+                    if (
+                        !confirm(
                             `Kick ${name} from this room?`
-                        );
-
-                    if (!confirmed) {
+                        )
+                    ) {
                         return;
                     }
-
 
                     sendSocket({
                         type: "kick",
@@ -1330,7 +1483,9 @@ function updateOwnerControls() {
     ) {
 
         const none =
-            document.createElement("div");
+            document.createElement(
+                "div"
+            );
 
         none.style.color =
             "#94a3b8";
@@ -1341,7 +1496,9 @@ function updateOwnerControls() {
         none.textContent =
             "No other users are online.";
 
-        ownerUsers.appendChild(none);
+        ownerUsers.appendChild(
+            none
+        );
     }
 }
 
@@ -1350,7 +1507,9 @@ function updateOwnerControls() {
    ONLINE USERS
 ========================= */
 
-function updateOnlineUsers(users) {
+function updateOnlineUsers(
+    users
+) {
 
     onlineUserList =
         Array.isArray(users)
@@ -1368,68 +1527,88 @@ function updateOnlineUsers(users) {
             : `${onlineUserList.length} people online`;
 
 
-    onlineUserList.forEach(name => {
+    onlineUserList.forEach(
+        name => {
 
-        const user =
-            document.createElement("div");
+            const user =
+                document.createElement(
+                    "div"
+                );
 
-        user.className =
-            "online-user";
-
-
-        const dot =
-            document.createElement("div");
-
-        dot.className =
-            "online-dot";
+            user.className =
+                "online-user";
 
 
-        const nameElement =
-            document.createElement("span");
+            const dot =
+                document.createElement(
+                    "div"
+                );
 
-        nameElement.textContent =
-            name;
+            dot.className =
+                "online-dot";
 
 
-        if (
-            name === ownerUsername
-        ) {
+            const nameElement =
+                document.createElement(
+                    "span"
+                );
 
-            const badge =
-                document.createElement("span");
+            nameElement.textContent =
+                name;
 
-            badge.className =
-                "owner-badge";
 
-            badge.textContent =
-                "👑 OWNER";
+            if (
+                name === ownerUsername
+            ) {
 
-            nameElement.appendChild(badge);
+                const badge =
+                    document.createElement(
+                        "span"
+                    );
+
+                badge.className =
+                    "owner-badge";
+
+                badge.textContent =
+                    "👑 OWNER";
+
+                nameElement.appendChild(
+                    badge
+                );
+            }
+
+
+            if (
+                name === username
+            ) {
+
+                const you =
+                    document.createElement(
+                        "span"
+                    );
+
+                you.className =
+                    "you-badge";
+
+                you.textContent =
+                    " (you)";
+
+                nameElement.appendChild(
+                    you
+                );
+            }
+
+
+            user.appendChild(dot);
+            user.appendChild(
+                nameElement
+            );
+
+            onlineUsers.appendChild(
+                user
+            );
         }
-
-
-        if (
-            name === username
-        ) {
-
-            const you =
-                document.createElement("span");
-
-            you.className =
-                "you-badge";
-
-            you.textContent =
-                " (you)";
-
-            nameElement.appendChild(you);
-        }
-
-
-        user.appendChild(dot);
-        user.appendChild(nameElement);
-
-        onlineUsers.appendChild(user);
-    });
+    );
 
 
     updateOwnerControls();
@@ -1443,10 +1622,14 @@ function updateOnlineUsers(users) {
 function updateTypingIndicator() {
 
     const names =
-        Array.from(currentlyTyping);
+        Array.from(
+            currentlyTyping
+        );
 
 
-    if (names.length === 0) {
+    if (
+        names.length === 0
+    ) {
 
         typingIndicator.textContent =
             "";
@@ -1455,7 +1638,9 @@ function updateTypingIndicator() {
     }
 
 
-    if (names.length === 1) {
+    if (
+        names.length === 1
+    ) {
 
         typingIndicator.textContent =
             `${names[0]} is typing...`;
@@ -1464,7 +1649,9 @@ function updateTypingIndicator() {
     }
 
 
-    if (names.length === 2) {
+    if (
+        names.length === 2
+    ) {
 
         typingIndicator.textContent =
             `${names[0]} and ${names[1]} are typing...`;
@@ -1478,7 +1665,9 @@ function updateTypingIndicator() {
 }
 
 
-function sendTypingStatus(isTyping) {
+function sendTypingStatus(
+    isTyping
+) {
 
     sendSocket({
         type: "typing",
@@ -1491,7 +1680,9 @@ function sendTypingStatus(isTyping) {
    COMPOSER
 ========================= */
 
-function setComposerEnabled(enabled) {
+function setComposerEnabled(
+    enabled
+) {
 
     messageInput.disabled =
         !enabled;
@@ -1587,9 +1778,27 @@ function connect() {
 
                 updateOwnerControls();
 
-                setComposerEnabled(true);
+                setComposerEnabled(
+                    true
+                );
 
                 messageInput.focus();
+
+                return;
+            }
+
+
+            /* PASSWORD CHANGED */
+
+            if (
+                data.type ===
+                "passwordChanged"
+            ) {
+
+                alert(
+                    data.message ||
+                    "Room password changed successfully."
+                );
 
                 return;
             }
@@ -1604,11 +1813,6 @@ function connect() {
                 ownerUsername =
                     data.owner || "";
 
-                /*
-                   Recalculate whether
-                   this user is the owner.
-                */
-
                 isOwner =
                     username ===
                     ownerUsername;
@@ -1622,7 +1826,7 @@ function connect() {
             }
 
 
-            /* PASSWORD */
+            /* PASSWORD ERROR */
 
             if (
                 data.type ===
@@ -1643,7 +1847,9 @@ function connect() {
                 login.style.display =
                     "flex";
 
-                setComposerEnabled(false);
+                setComposerEnabled(
+                    false
+                );
 
                 passwordInput.focus();
 
@@ -1662,11 +1868,9 @@ function connect() {
                     "You were kicked from the room."
                 );
 
-
                 if (socket) {
                     socket.close();
                 }
-
 
                 chat.style.display =
                     "none";
@@ -1674,7 +1878,9 @@ function connect() {
                 login.style.display =
                     "flex";
 
-                setComposerEnabled(false);
+                setComposerEnabled(
+                    false
+                );
 
                 return;
             }
@@ -1712,14 +1918,12 @@ function connect() {
                         `.message[data-id="${data.id}"]`
                     );
 
-
                 if (element) {
 
                     const text =
                         element.querySelector(
                             ".message-text"
                         );
-
 
                     if (text) {
 
@@ -1745,7 +1949,6 @@ function connect() {
                         `.message[data-id="${data.id}"]`
                     );
 
-
                 if (element) {
                     element.remove();
                 }
@@ -1766,7 +1969,6 @@ function connect() {
                         `.message[data-id="${data.id}"]`
                     );
 
-
                 if (element) {
 
                     const area =
@@ -1774,12 +1976,12 @@ function connect() {
                             ".reactions"
                         );
 
-
                     if (area) {
 
                         renderReactions(
                             area,
-                            data.reactions || {},
+                            data.reactions ||
+                                {},
                             data.id
                         );
                     }
@@ -1836,7 +2038,6 @@ function connect() {
                     );
                 }
 
-
                 updateTypingIndicator();
 
                 return;
@@ -1863,7 +2064,9 @@ function connect() {
         "close",
         () => {
 
-            setComposerEnabled(false);
+            setComposerEnabled(
+                false
+            );
 
             setStatus(
                 "disconnected",
@@ -1944,15 +2147,19 @@ function joinChat() {
 
     onlineUserList = [];
 
-    ownerUsername = "";
+    ownerUsername =
+        "";
 
-    isOwner = false;
+    isOwner =
+        false;
 
     currentlyTyping.clear();
 
     cancelReplyMode();
 
-    setComposerEnabled(false);
+    setComposerEnabled(
+        false
+    );
 
     updateOwnerControls();
 
@@ -1986,14 +2193,80 @@ function sendMessage() {
     }
 
 
-    sendTypingStatus(false);
+    sendTypingStatus(
+        false
+    );
 
-    messageInput.value = "";
+    messageInput.value =
+        "";
 
     cancelReplyMode();
 
     messageInput.focus();
 }
+
+
+/* =========================
+   CHANGE PASSWORD
+========================= */
+
+changePasswordButton.addEventListener(
+    "click",
+    () => {
+
+        if (!isOwner) {
+
+            alert(
+                "Only the room owner can change the password."
+            );
+
+            return;
+        }
+
+
+        const newPassword =
+            prompt(
+                "Enter the new room password.\n\nLeave it blank to remove the password."
+            );
+
+
+        if (
+            newPassword === null
+        ) {
+            return;
+        }
+
+
+        if (
+            newPassword.length > 100
+        ) {
+
+            alert(
+                "Password must be 100 characters or less."
+            );
+
+            return;
+        }
+
+
+        const sent =
+            sendSocket({
+                type:
+                    "changePassword",
+
+                password:
+                    newPassword
+            });
+
+
+        if (!sent) {
+
+            alert(
+                "Not connected to the server."
+            );
+        }
+    }
+);
 
 
 /* =========================
@@ -2019,7 +2292,9 @@ usernameInput.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
             joinChat();
         }
     }
@@ -2029,7 +2304,9 @@ roomInput.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
             joinChat();
         }
     }
@@ -2039,7 +2316,9 @@ passwordInput.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
             joinChat();
         }
     }
@@ -2054,14 +2333,22 @@ messageInput.addEventListener(
     "input",
     () => {
 
-        sendTypingStatus(true);
+        sendTypingStatus(
+            true
+        );
 
-        clearTimeout(typingTimer);
+        clearTimeout(
+            typingTimer
+        );
 
         typingTimer =
             setTimeout(
                 () => {
-                    sendTypingStatus(false);
+
+                    sendTypingStatus(
+                        false
+                    );
+
                 },
                 1200
             );
