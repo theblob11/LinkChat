@@ -32,11 +32,19 @@ const pool = new Pool({
 
 app.use(express.json());
 
-app.use(express.static(path.join(__dirname, "public")));
+app.use(
+    express.static(
+        path.join(__dirname, "public")
+    )
+);
 
 app.use((req, res) => {
     res.sendFile(
-        path.join(__dirname, "public", "index.html")
+        path.join(
+            __dirname,
+            "public",
+            "index.html"
+        )
     );
 });
 
@@ -55,9 +63,12 @@ const rooms = new Map();
 ========================================================= */
 
 async function setupDatabase() {
+
     console.log("Checking database...");
 
-    /* ROOMS */
+    /* =========================
+       ROOMS
+    ========================= */
 
     await pool.query(`
         CREATE TABLE IF NOT EXISTS rooms (
@@ -65,8 +76,14 @@ async function setupDatabase() {
             room TEXT UNIQUE NOT NULL,
             password TEXT DEFAULT '',
             owner TEXT DEFAULT '',
+            locked BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+    `);
+
+    await pool.query(`
+        ALTER TABLE rooms
+        ADD COLUMN IF NOT EXISTS room TEXT
     `);
 
     await pool.query(`
@@ -81,11 +98,18 @@ async function setupDatabase() {
 
     await pool.query(`
         ALTER TABLE rooms
+        ADD COLUMN IF NOT EXISTS locked BOOLEAN DEFAULT FALSE
+    `);
+
+    await pool.query(`
+        ALTER TABLE rooms
         ADD COLUMN IF NOT EXISTS created_at
         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     `);
 
-    /* MESSAGES */
+    /* =========================
+       MESSAGES
+    ========================= */
 
     await pool.query(`
         CREATE TABLE IF NOT EXISTS messages (
@@ -139,9 +163,26 @@ async function setupDatabase() {
         BIGINT
     `);
 
-    /*
-       Keep your JJCE room owned by Justin.
-    */
+    /* =========================
+       REACTIONS
+    ========================= */
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS reactions (
+            message_id BIGINT NOT NULL,
+            username TEXT NOT NULL,
+            reaction TEXT NOT NULL,
+            PRIMARY KEY (
+                message_id,
+                username,
+                reaction
+            )
+        )
+    `);
+
+    /* =========================
+       JJCE OWNER FIX
+    ========================= */
 
     await pool.query(`
         UPDATE rooms
@@ -157,30 +198,43 @@ async function setupDatabase() {
 ========================================================= */
 
 function cleanText(value, maxLength) {
+
     if (typeof value !== "string") {
         return "";
     }
 
-    return value.trim().slice(0, maxLength);
+    return value
+        .trim()
+        .slice(0, maxLength);
 }
 
 function send(ws, data) {
+
     if (
         ws &&
         ws.readyState === WebSocket.OPEN
     ) {
-        ws.send(JSON.stringify(data));
+        ws.send(
+            JSON.stringify(data)
+        );
     }
 }
 
-function broadcast(roomName, data, except = null) {
-    const room = rooms.get(roomName);
+function broadcast(
+    roomName,
+    data,
+    except = null
+) {
+
+    const room =
+        rooms.get(roomName);
 
     if (!room) {
         return;
     }
 
     for (const client of room.users) {
+
         if (client === except) {
             continue;
         }
@@ -190,25 +244,37 @@ function broadcast(roomName, data, except = null) {
 }
 
 function getRoomUsers(roomName) {
-    const room = rooms.get(roomName);
+
+    const room =
+        rooms.get(roomName);
 
     if (!room) {
         return [];
     }
 
     return Array.from(room.users)
-        .filter(client => client.username)
-        .map(client => client.username);
+        .filter(
+            client => client.username
+        )
+        .map(
+            client => client.username
+        );
 }
 
 function updateUsers(roomName) {
-    broadcast(roomName, {
-        type: "users",
-        users: getRoomUsers(roomName)
-    });
+
+    broadcast(
+        roomName,
+        {
+            type: "users",
+            users:
+                getRoomUsers(roomName)
+        }
+    );
 }
 
 function hashPassword(password) {
+
     if (!password) {
         return "";
     }
@@ -224,19 +290,24 @@ function hashPassword(password) {
 ========================================================= */
 
 async function getRoom(roomName) {
-    const result = await pool.query(
-        `
-        SELECT
-            room,
-            password,
-            owner
-        FROM rooms
-        WHERE room = $1
-        `,
-        [roomName]
-    );
 
-    if (result.rows.length === 0) {
+    const result =
+        await pool.query(
+            `
+            SELECT
+                room,
+                password,
+                owner,
+                locked
+            FROM rooms
+            WHERE room = $1
+            `,
+            [roomName]
+        );
+
+    if (
+        result.rows.length === 0
+    ) {
         return null;
     }
 
@@ -248,27 +319,31 @@ async function createRoom(
     password,
     owner
 ) {
-    const result = await pool.query(
-        `
-        INSERT INTO rooms
-            (
+
+    const result =
+        await pool.query(
+            `
+            INSERT INTO rooms
+                (
+                    room,
+                    password,
+                    owner,
+                    locked
+                )
+            VALUES
+                ($1, $2, $3, FALSE)
+            RETURNING
                 room,
                 password,
+                owner,
+                locked
+            `,
+            [
+                roomName,
+                hashPassword(password),
                 owner
-            )
-        VALUES
-            ($1, $2, $3)
-        RETURNING
-            room,
-            password,
-            owner
-        `,
-        [
-            roomName,
-            hashPassword(password),
-            owner
-        ]
-    );
+            ]
+        );
 
     return result.rows[0];
 }
@@ -277,44 +352,127 @@ async function createRoom(
    MESSAGE HISTORY
 ========================================================= */
 
-async function loadMessages(roomName, ws) {
-    const result = await pool.query(
-        `
-        SELECT
-            id,
-            username,
-            message,
-            time,
-            edited,
-            deleted,
-            reply_to
-        FROM messages
-        WHERE room = $1
-        ORDER BY id ASC
-        LIMIT 500
-        `,
-        [roomName]
-    );
+async function loadMessages(
+    roomName,
+    ws
+) {
 
-    for (const row of result.rows) {
-        send(ws, {
-            type: "message",
+    const result =
+        await pool.query(
+            `
+            SELECT
+                m.id,
+                m.username,
+                m.message,
+                m.time,
+                m.edited,
+                m.deleted,
+                m.reply_to,
 
-            id: row.id,
+                COALESCE(
+                    (
+                        SELECT
+                            json_object_agg(
+                                reaction_counts.reaction,
+                                reaction_counts.count
+                            )
+                        FROM (
+                            SELECT
+                                r.reaction,
+                                COUNT(*)::int AS count
+                            FROM reactions r
+                            WHERE
+                                r.message_id = m.id
+                            GROUP BY
+                                r.reaction
+                        ) reaction_counts
+                    ),
+                    '{}'::json
+                ) AS reactions
 
-            username: row.username,
+            FROM messages m
 
-            message: row.deleted
-                ? "[message deleted]"
-                : row.message,
+            WHERE m.room = $1
 
-            time: row.time,
+            ORDER BY m.id ASC
 
-            edited: row.edited,
+            LIMIT 500
+            `,
+            [roomName]
+        );
 
-            replyTo: row.reply_to
-        });
+    for (
+        const row of result.rows
+    ) {
+
+        send(
+            ws,
+            {
+                type: "message",
+
+                id:
+                    row.id,
+
+                username:
+                    row.username,
+
+                message:
+                    row.deleted
+                        ? "[message deleted]"
+                        : row.message,
+
+                time:
+                    row.time,
+
+                edited:
+                    row.edited,
+
+                replyTo:
+                    row.reply_to,
+
+                reactions:
+                    row.reactions || {}
+            }
+        );
     }
+}
+
+/* =========================================================
+   REACTIONS
+========================================================= */
+
+async function getReactions(
+    messageId
+) {
+
+    const result =
+        await pool.query(
+            `
+            SELECT
+                reaction,
+                COUNT(*)::int AS count
+
+            FROM reactions
+
+            WHERE message_id = $1
+
+            GROUP BY reaction
+            `,
+            [messageId]
+        );
+
+    const reactions = {};
+
+    for (
+        const row of result.rows
+    ) {
+
+        reactions[
+            row.reaction
+        ] = row.count;
+    }
+
+    return reactions;
 }
 
 /* =========================================================
@@ -327,27 +485,36 @@ async function joinRoom(
     username,
     password
 ) {
+
     let databaseRoom =
         await getRoom(roomName);
 
-    /* CREATE NEW ROOM */
+    /* =====================================================
+       CREATE ROOM
+    ===================================================== */
 
     if (!databaseRoom) {
-        databaseRoom = await createRoom(
-            roomName,
-            password,
-            username
-        );
+
+        databaseRoom =
+            await createRoom(
+                roomName,
+                password,
+                username
+            );
     }
 
-    /* EXISTING ROOM */
+    /* =====================================================
+       EXISTING ROOM
+    ===================================================== */
 
     else {
-        /*
-           Keep JJCE owned by Justin.
-        */
 
-        if (roomName === "JJCE") {
+        /* Keep JJCE owned by Justin */
+
+        if (
+            roomName === "JJCE"
+        ) {
+
             await pool.query(
                 `
                 UPDATE rooms
@@ -360,7 +527,27 @@ async function joinRoom(
                 ]
             );
 
-            databaseRoom.owner = "Justin";
+            databaseRoom.owner =
+                "Justin";
+        }
+
+        /* Locked rooms reject new users */
+
+        if (
+            databaseRoom.locked &&
+            databaseRoom.owner !== username
+        ) {
+
+            send(
+                ws,
+                {
+                    type: "roomLocked",
+                    message:
+                        "This room is currently locked by the owner."
+                }
+            );
+
+            return false;
         }
 
         const suppliedPassword =
@@ -370,54 +557,95 @@ async function joinRoom(
             databaseRoom.password !==
             suppliedPassword
         ) {
-            send(ws, {
-                type: "passwordError",
-                message:
-                    "Incorrect room password."
-            });
+
+            send(
+                ws,
+                {
+                    type:
+                        "passwordError",
+
+                    message:
+                        "Incorrect room password."
+                }
+            );
 
             return false;
         }
     }
 
-    /* DUPLICATE USERNAME */
+    /* =====================================================
+       DUPLICATE USERNAME
+    ===================================================== */
 
     const currentRoom =
         rooms.get(roomName);
 
     if (currentRoom) {
-        for (const client of currentRoom.users) {
+
+        for (
+            const client
+            of currentRoom.users
+        ) {
+
             if (
                 client.username &&
-                client.username.toLowerCase() ===
+                client.username
+                    .toLowerCase() ===
                     username.toLowerCase()
             ) {
-                send(ws, {
-                    type: "error",
-                    message:
-                        "That username is already being used in this room."
-                });
+
+                send(
+                    ws,
+                    {
+                        type: "error",
+
+                        message:
+                            "That username is already being used in this room."
+                    }
+                );
 
                 return false;
             }
         }
     }
 
-    /* CREATE MEMORY ROOM */
+    /* =====================================================
+       CREATE MEMORY ROOM
+    ===================================================== */
 
     if (!rooms.has(roomName)) {
-        rooms.set(roomName, {
-            owner: databaseRoom.owner,
-            users: new Set()
-        });
+
+        rooms.set(
+            roomName,
+            {
+                owner:
+                    databaseRoom.owner,
+
+                locked:
+                    Boolean(
+                        databaseRoom.locked
+                    ),
+
+                users:
+                    new Set()
+            }
+        );
     }
 
-    const room = rooms.get(roomName);
+    const room =
+        rooms.get(roomName);
 
-    room.owner = databaseRoom.owner;
+    room.owner =
+        databaseRoom.owner;
 
-    ws.room = roomName;
-    ws.username = username;
+    room.locked =
+        Boolean(databaseRoom.locked);
+
+    ws.room =
+        roomName;
+
+    ws.username =
+        username;
 
     ws.isOwner =
         username.toLowerCase() ===
@@ -425,31 +653,48 @@ async function joinRoom(
 
     room.users.add(ws);
 
-    /* JOIN RESPONSE */
+    /* =====================================================
+       JOIN RESPONSE
+    ===================================================== */
 
-    send(ws, {
-        type: "joined",
+    send(
+        ws,
+        {
+            type: "joined",
 
-        room: roomName,
+            room:
+                roomName,
 
-        owner: room.owner,
+            owner:
+                room.owner,
 
-        isOwner: ws.isOwner
-    });
+            locked:
+                room.locked,
 
-    /* LOAD HISTORY */
+            isOwner:
+                ws.isOwner
+        }
+    );
+
+    /* =====================================================
+       LOAD HISTORY
+    ===================================================== */
 
     await loadMessages(
         roomName,
         ws
     );
 
-    /* JOIN MESSAGE */
+    /* =====================================================
+       JOIN MESSAGE
+    ===================================================== */
 
     broadcast(
         roomName,
         {
-            type: "system",
+            type:
+                "system",
+
             message:
                 `${username} joined the room.`
         },
@@ -462,612 +707,1392 @@ async function joinRoom(
 }
 
 /* =========================================================
-   WEBSOCKET CONNECTION
+   WEBSOCKET
 ========================================================= */
 
-wss.on("connection", ws => {
-    ws.room = null;
-    ws.username = null;
-    ws.isOwner = false;
+wss.on(
+    "connection",
+    ws => {
 
-    send(ws, {
-        type: "connected"
-    });
+        ws.room = null;
+        ws.username = null;
+        ws.isOwner = false;
 
-    ws.on("message", async raw => {
-        let data;
-
-        try {
-            data = JSON.parse(
-                raw.toString()
-            );
-        } catch {
-            send(ws, {
-                type: "error",
-                message: "Invalid request."
-            });
-
-            return;
-        }
-
-        try {
-            /* =================================================
-               JOIN
-            ================================================= */
-
-            if (data.type === "join") {
-                const username =
-                    cleanText(
-                        data.username,
-                        30
-                    );
-
-                const roomName =
-                    cleanText(
-                        data.room,
-                        100
-                    );
-
-                const password =
-                    typeof data.password ===
-                    "string"
-                        ? data.password.slice(
-                            0,
-                            100
-                        )
-                        : "";
-
-                if (
-                    !username ||
-                    !roomName
-                ) {
-                    send(ws, {
-                        type: "error",
-                        message:
-                            "Name and room are required."
-                    });
-
-                    return;
-                }
-
-                await joinRoom(
-                    ws,
-                    roomName,
-                    username,
-                    password
-                );
-
-                return;
+        send(
+            ws,
+            {
+                type:
+                    "connected"
             }
+        );
 
-            /* =================================================
-               REQUIRE ROOM
-            ================================================= */
+        ws.on(
+            "message",
+            async raw => {
 
-            if (
-                !ws.room ||
-                !ws.username
-            ) {
-                send(ws, {
-                    type: "error",
-                    message:
-                        "You are not in a room."
-                });
+                let data;
 
-                return;
-            }
+                try {
 
-            const room =
-                rooms.get(ws.room);
-
-            if (!room) {
-                return;
-            }
-
-            /* =================================================
-               MESSAGE
-            ================================================= */
-
-            if (data.type === "message") {
-                const message =
-                    cleanText(
-                        data.message,
-                        1000
-                    );
-
-                if (!message) {
-                    return;
-                }
-
-                let replyTo = null;
-
-                if (
-                    data.replyTo !==
-                        null &&
-                    data.replyTo !==
-                        undefined
-                ) {
-                    const replyId =
-                        Number(
-                            data.replyTo
+                    data =
+                        JSON.parse(
+                            raw.toString()
                         );
 
+                } catch {
+
+                    send(
+                        ws,
+                        {
+                            type:
+                                "error",
+
+                            message:
+                                "Invalid request."
+                        }
+                    );
+
+                    return;
+                }
+
+                try {
+
+                    /* =========================================
+                       JOIN
+                    ========================================= */
+
                     if (
-                        Number.isSafeInteger(
-                            replyId
-                        )
+                        data.type ===
+                        "join"
                     ) {
-                        replyTo =
-                            replyId;
-                    }
-                }
 
-                const result =
-                    await pool.query(
-                        `
-                        INSERT INTO messages
-                            (
-                                room,
-                                username,
-                                message,
-                                reply_to
+                        const username =
+                            cleanText(
+                                data.username,
+                                30
+                            );
+
+                        const roomName =
+                            cleanText(
+                                data.room,
+                                100
+                            );
+
+                        const password =
+                            typeof data.password ===
+                            "string"
+                                ? data.password.slice(
+                                    0,
+                                    100
+                                )
+                                : "";
+
+                        if (
+                            !username ||
+                            !roomName
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Name and room are required."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        await joinRoom(
+                            ws,
+                            roomName,
+                            username,
+                            password
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       REQUIRE ROOM
+                    ========================================= */
+
+                    if (
+                        !ws.room ||
+                        !ws.username
+                    ) {
+
+                        send(
+                            ws,
+                            {
+                                type:
+                                    "error",
+
+                                message:
+                                    "You are not in a room."
+                            }
+                        );
+
+                        return;
+                    }
+
+                    const room =
+                        rooms.get(
+                            ws.room
+                        );
+
+                    if (!room) {
+                        return;
+                    }
+
+                    /* =========================================
+                       MESSAGE
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "message"
+                    ) {
+
+                        const message =
+                            cleanText(
+                                data.message,
+                                1000
+                            );
+
+                        if (!message) {
+                            return;
+                        }
+
+                        let replyTo =
+                            null;
+
+                        if (
+                            data.replyTo !==
+                                null &&
+                            data.replyTo !==
+                                undefined
+                        ) {
+
+                            const replyId =
+                                Number(
+                                    data.replyTo
+                                );
+
+                            if (
+                                Number.isSafeInteger(
+                                    replyId
+                                )
+                            ) {
+
+                                replyTo =
+                                    replyId;
+                            }
+                        }
+
+                        const result =
+                            await pool.query(
+                                `
+                                INSERT INTO messages
+                                    (
+                                        room,
+                                        username,
+                                        message,
+                                        reply_to
+                                    )
+                                VALUES
+                                    ($1, $2, $3, $4)
+                                RETURNING
+                                    id,
+                                    time
+                                `,
+                                [
+                                    ws.room,
+                                    ws.username,
+                                    message,
+                                    replyTo
+                                ]
+                            );
+
+                        const saved =
+                            result.rows[0];
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "message",
+
+                                id:
+                                    saved.id,
+
+                                username:
+                                    ws.username,
+
+                                message:
+                                    message,
+
+                                time:
+                                    saved.time,
+
+                                edited:
+                                    false,
+
+                                replyTo:
+                                    replyTo,
+
+                                reactions:
+                                    {}
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       EDIT
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "edit"
+                    ) {
+
+                        const id =
+                            Number(
+                                data.id
+                            );
+
+                        const message =
+                            cleanText(
+                                data.message,
+                                1000
+                            );
+
+                        if (
+                            !Number.isSafeInteger(
+                                id
+                            ) ||
+                            !message
+                        ) {
+
+                            return;
+                        }
+
+                        const result =
+                            await pool.query(
+                                `
+                                UPDATE messages
+                                SET
+                                    message = $1,
+                                    edited = TRUE
+                                WHERE
+                                    id = $2
+                                    AND room = $3
+                                    AND username = $4
+                                    AND deleted = FALSE
+                                RETURNING id
+                                `,
+                                [
+                                    message,
+                                    id,
+                                    ws.room,
+                                    ws.username
+                                ]
+                            );
+
+                        if (
+                            result.rows.length ===
+                            0
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "You can only edit your own messages."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "messageEdited",
+
+                                id:
+                                    id,
+
+                                message:
+                                    message
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       DELETE
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "delete"
+                    ) {
+
+                        const id =
+                            Number(
+                                data.id
+                            );
+
+                        if (
+                            !Number.isSafeInteger(
+                                id
                             )
-                        VALUES
-                            ($1, $2, $3, $4)
-                        RETURNING
-                            id,
-                            time
-                        `,
-                        [
+                        ) {
+
+                            return;
+                        }
+
+                        const result =
+                            await pool.query(
+                                `
+                                UPDATE messages
+                                SET
+                                    deleted = TRUE,
+                                    message =
+                                        '[message deleted]'
+                                WHERE
+                                    id = $1
+                                    AND room = $2
+                                    AND username = $3
+                                    AND deleted = FALSE
+                                RETURNING id
+                                `,
+                                [
+                                    id,
+                                    ws.room,
+                                    ws.username
+                                ]
+                            );
+
+                        if (
+                            result.rows.length ===
+                            0
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "You can only delete your own messages."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        broadcast(
                             ws.room,
-                            ws.username,
-                            message,
-                            replyTo
-                        ]
-                    );
+                            {
+                                type:
+                                    "messageDeleted",
 
-                const saved =
-                    result.rows[0];
+                                id:
+                                    id
+                            }
+                        );
 
-                broadcast(
-                    ws.room,
-                    {
-                        type: "message",
-
-                        id: saved.id,
-
-                        username:
-                            ws.username,
-
-                        message: message,
-
-                        time: saved.time,
-
-                        edited: false,
-
-                        replyTo: replyTo
+                        return;
                     }
-                );
 
-                return;
-            }
+                    /* =========================================
+                       REACTION
+                    ========================================= */
 
-            /* =================================================
-               EDIT
-            ================================================= */
+                    if (
+                        data.type ===
+                        "reaction"
+                    ) {
 
-            if (data.type === "edit") {
-                const id =
-                    Number(data.id);
+                        const id =
+                            Number(
+                                data.id
+                            );
 
-                const message =
-                    cleanText(
-                        data.message,
-                        1000
-                    );
+                        const reaction =
+                            cleanText(
+                                data.reaction,
+                                10
+                            );
 
-                if (
-                    !Number.isSafeInteger(
-                        id
-                    ) ||
-                    !message
-                ) {
-                    return;
-                }
+                        const allowed = [
+                            "👍",
+                            "❤️",
+                            "😂",
+                            "😮",
+                            "😢",
+                            "😡"
+                        ];
 
-                const result =
-                    await pool.query(
-                        `
-                        UPDATE messages
-                        SET
-                            message = $1,
-                            edited = TRUE
-                        WHERE
-                            id = $2
-                            AND room = $3
-                            AND username = $4
-                            AND deleted = FALSE
-                        RETURNING id
-                        `,
-                        [
-                            message,
-                            id,
+                        if (
+                            !Number.isSafeInteger(
+                                id
+                            ) ||
+                            !allowed.includes(
+                                reaction
+                            )
+                        ) {
+
+                            return;
+                        }
+
+                        const messageResult =
+                            await pool.query(
+                                `
+                                SELECT id
+                                FROM messages
+                                WHERE
+                                    id = $1
+                                    AND room = $2
+                                    AND deleted = FALSE
+                                `,
+                                [
+                                    id,
+                                    ws.room
+                                ]
+                            );
+
+                        if (
+                            messageResult.rows
+                                .length === 0
+                        ) {
+                            return;
+                        }
+
+                        const existing =
+                            await pool.query(
+                                `
+                                SELECT 1
+                                FROM reactions
+                                WHERE
+                                    message_id = $1
+                                    AND username = $2
+                                    AND reaction = $3
+                                `,
+                                [
+                                    id,
+                                    ws.username,
+                                    reaction
+                                ]
+                            );
+
+                        if (
+                            existing.rows.length
+                        ) {
+
+                            await pool.query(
+                                `
+                                DELETE FROM reactions
+                                WHERE
+                                    message_id = $1
+                                    AND username = $2
+                                    AND reaction = $3
+                                `,
+                                [
+                                    id,
+                                    ws.username,
+                                    reaction
+                                ]
+                            );
+
+                        } else {
+
+                            await pool.query(
+                                `
+                                INSERT INTO reactions
+                                    (
+                                        message_id,
+                                        username,
+                                        reaction
+                                    )
+                                VALUES
+                                    ($1, $2, $3)
+                                ON CONFLICT DO NOTHING
+                                `,
+                                [
+                                    id,
+                                    ws.username,
+                                    reaction
+                                ]
+                            );
+                        }
+
+                        const reactions =
+                            await getReactions(
+                                id
+                            );
+
+                        broadcast(
                             ws.room,
-                            ws.username
-                        ]
+                            {
+                                type:
+                                    "reactionUpdate",
+
+                                id:
+                                    id,
+
+                                reactions:
+                                    reactions
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       TYPING
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "typing"
+                    ) {
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "typing",
+
+                                username:
+                                    ws.username,
+
+                                typing:
+                                    Boolean(
+                                        data.typing
+                                    )
+                            },
+                            ws
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       KICK
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "kick"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !==
+                                room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can kick users."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const targetName =
+                            cleanText(
+                                data.username,
+                                30
+                            );
+
+                        if (
+                            !targetName ||
+                            targetName ===
+                                ws.username
+                        ) {
+                            return;
+                        }
+
+                        let target =
+                            null;
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            if (
+                                client.username ===
+                                targetName
+                            ) {
+
+                                target =
+                                    client;
+
+                                break;
+                            }
+                        }
+
+                        if (!target) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "That user is not online."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        send(
+                            target,
+                            {
+                                type:
+                                    "kicked",
+
+                                message:
+                                    "You were kicked from the room by the owner."
+                            }
+                        );
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "system",
+
+                                message:
+                                    `${target.username} was kicked from the room.`
+                            },
+                            target
+                        );
+
+                        room.users.delete(
+                            target
+                        );
+
+                        try {
+                            target.close();
+                        } catch {}
+
+                        updateUsers(
+                            ws.room
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       CHANGE PASSWORD
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "changePassword"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !==
+                                room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can change the password."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        let newPassword =
+                            typeof data.password ===
+                            "string"
+                                ? data.password
+                                : "";
+
+                        newPassword =
+                            newPassword.slice(
+                                0,
+                                100
+                            );
+
+                        await pool.query(
+                            `
+                            UPDATE rooms
+                            SET
+                                password = $1
+                            WHERE
+                                room = $2
+                            `,
+                            [
+                                hashPassword(
+                                    newPassword
+                                ),
+                                ws.room
+                            ]
+                        );
+
+                        send(
+                            ws,
+                            {
+                                type:
+                                    "passwordChanged",
+
+                                message:
+                                    newPassword
+                                        ? "Room password changed successfully."
+                                        : "Room password removed."
+                            }
+                        );
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "system",
+
+                                message:
+                                    "The room owner changed the room password."
+                            },
+                            ws
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       RENAME ROOM
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "renameRoom"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !== room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can rename the room."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const newRoomName =
+                            cleanText(
+                                data.newName,
+                                100
+                            );
+
+                        if (!newRoomName) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Enter a room name."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        if (
+                            newRoomName ===
+                            ws.room
+                        ) {
+
+                            return;
+                        }
+
+                        const existing =
+                            await getRoom(
+                                newRoomName
+                            );
+
+                        if (existing) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "That room name is already being used."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const oldRoomName =
+                            ws.room;
+
+                        /* Update database */
+
+                        await pool.query(
+                            `
+                            UPDATE rooms
+                            SET room = $1
+                            WHERE room = $2
+                            `,
+                            [
+                                newRoomName,
+                                oldRoomName
+                            ]
+                        );
+
+                        await pool.query(
+                            `
+                            UPDATE messages
+                            SET room = $1
+                            WHERE room = $2
+                            `,
+                            [
+                                newRoomName,
+                                oldRoomName
+                            ]
+                        );
+
+                        /* Move memory room */
+
+                        rooms.delete(
+                            oldRoomName
+                        );
+
+                        rooms.set(
+                            newRoomName,
+                            room
+                        );
+
+                        /* Update every connected client */
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            client.room =
+                                newRoomName;
+
+                            send(
+                                client,
+                                {
+                                    type:
+                                        "roomRenamed",
+
+                                    oldName:
+                                        oldRoomName,
+
+                                    newName:
+                                        newRoomName
+                                }
+                            );
+                        }
+
+                        broadcast(
+                            newRoomName,
+                            {
+                                type:
+                                    "system",
+
+                                message:
+                                    `The room was renamed to "${newRoomName}".`
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       TRANSFER OWNER
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "transferOwner"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !== room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can transfer ownership."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const targetName =
+                            cleanText(
+                                data.username,
+                                30
+                            );
+
+                        if (!targetName) {
+                            return;
+                        }
+
+                        let target =
+                            null;
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            if (
+                                client.username ===
+                                targetName
+                            ) {
+
+                                target =
+                                    client;
+
+                                break;
+                            }
+                        }
+
+                        if (!target) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "The new owner must be online."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        if (
+                            target === ws
+                        ) {
+                            return;
+                        }
+
+                        const oldOwner =
+                            room.owner;
+
+                        room.owner =
+                            target.username;
+
+                        await pool.query(
+                            `
+                            UPDATE rooms
+                            SET owner = $1
+                            WHERE room = $2
+                            `,
+                            [
+                                target.username,
+                                ws.room
+                            ]
+                        );
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            client.isOwner =
+                                client.username
+                                    .toLowerCase() ===
+                                room.owner.toLowerCase();
+
+                            send(
+                                client,
+                                {
+                                    type:
+                                        "owner",
+
+                                    owner:
+                                        room.owner,
+
+                                    isOwner:
+                                        client.isOwner
+                                }
+                            );
+                        }
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "system",
+
+                                message:
+                                    `${oldOwner} transferred ownership to ${target.username}.`
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       LOCK / UNLOCK ROOM
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "toggleLock"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !== room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can lock the room."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        room.locked =
+                            !room.locked;
+
+                        await pool.query(
+                            `
+                            UPDATE rooms
+                            SET locked = $1
+                            WHERE room = $2
+                            `,
+                            [
+                                room.locked,
+                                ws.room
+                            ]
+                        );
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "roomLockChanged",
+
+                                locked:
+                                    room.locked
+                            }
+                        );
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "system",
+
+                                message:
+                                    room.locked
+                                        ? "The room has been locked. New users cannot join."
+                                        : "The room has been unlocked."
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       DELETE ROOM
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "deleteRoom"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !== room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can delete the room."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const roomName =
+                            ws.room;
+
+                        /* Delete reactions */
+
+                        await pool.query(
+                            `
+                            DELETE FROM reactions
+                            WHERE message_id IN (
+                                SELECT id
+                                FROM messages
+                                WHERE room = $1
+                            )
+                            `,
+                            [roomName]
+                        );
+
+                        /* Delete messages */
+
+                        await pool.query(
+                            `
+                            DELETE FROM messages
+                            WHERE room = $1
+                            `,
+                            [roomName]
+                        );
+
+                        /* Delete room */
+
+                        await pool.query(
+                            `
+                            DELETE FROM rooms
+                            WHERE room = $1
+                            `,
+                            [roomName]
+                        );
+
+                        /* Tell everyone */
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            send(
+                                client,
+                                {
+                                    type:
+                                        "roomDeleted",
+
+                                    message:
+                                        "This room was deleted by the owner."
+                                }
+                            );
+
+                            try {
+                                client.close();
+                            } catch {}
+                        }
+
+                        rooms.delete(
+                            roomName
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       UNKNOWN
+                    ========================================= */
+
+                    send(
+                        ws,
+                        {
+                            type:
+                                "error",
+
+                            message:
+                                "Unknown request."
+                        }
                     );
 
-                if (
-                    result.rows.length === 0
-                ) {
-                    send(ws, {
-                        type: "error",
-                        message:
-                            "You can only edit your own messages."
-                    });
+                } catch (error) {
 
+                    console.error(
+                        "WebSocket error:",
+                        error
+                    );
+
+                    send(
+                        ws,
+                        {
+                            type:
+                                "error",
+
+                            message:
+                                "Server error."
+                        }
+                    );
+                }
+            }
+        );
+
+        /* =====================================================
+           DISCONNECT
+        ===================================================== */
+
+        ws.on(
+            "close",
+            () => {
+
+                if (!ws.room) {
                     return;
                 }
+
+                const room =
+                    rooms.get(
+                        ws.room
+                    );
+
+                if (!room) {
+                    return;
+                }
+
+                room.users.delete(
+                    ws
+                );
 
                 broadcast(
                     ws.room,
                     {
                         type:
-                            "messageEdited",
-
-                        id: id,
-
-                        message: message
-                    }
-                );
-
-                return;
-            }
-
-            /* =================================================
-               DELETE
-            ================================================= */
-
-            if (data.type === "delete") {
-                const id =
-                    Number(data.id);
-
-                if (
-                    !Number.isSafeInteger(
-                        id
-                    )
-                ) {
-                    return;
-                }
-
-                const result =
-                    await pool.query(
-                        `
-                        UPDATE messages
-                        SET
-                            deleted = TRUE,
-                            message =
-                                '[message deleted]'
-                        WHERE
-                            id = $1
-                            AND room = $2
-                            AND username = $3
-                            AND deleted = FALSE
-                        RETURNING id
-                        `,
-                        [
-                            id,
-                            ws.room,
-                            ws.username
-                        ]
-                    );
-
-                if (
-                    result.rows.length === 0
-                ) {
-                    send(ws, {
-                        type: "error",
-                        message:
-                            "You can only delete your own messages."
-                    });
-
-                    return;
-                }
-
-                broadcast(
-                    ws.room,
-                    {
-                        type:
-                            "messageDeleted",
-
-                        id: id
-                    }
-                );
-
-                return;
-            }
-
-            /* =================================================
-               TYPING
-            ================================================= */
-
-            if (data.type === "typing") {
-                broadcast(
-                    ws.room,
-                    {
-                        type: "typing",
+                            "typing",
 
                         username:
                             ws.username,
 
                         typing:
-                            Boolean(
-                                data.typing
-                            )
-                    },
-                    ws
-                );
-
-                return;
-            }
-
-            /* =================================================
-               KICK
-            ================================================= */
-
-            if (data.type === "kick") {
-                if (
-                    !ws.isOwner ||
-                    ws.username !==
-                        room.owner
-                ) {
-                    send(ws, {
-                        type: "error",
-                        message:
-                            "Only the room owner can kick users."
-                    });
-
-                    return;
-                }
-
-                const targetName =
-                    cleanText(
-                        data.username,
-                        30
-                    );
-
-                if (
-                    !targetName ||
-                    targetName ===
-                        ws.username
-                ) {
-                    return;
-                }
-
-                let target = null;
-
-                for (
-                    const client of room.users
-                ) {
-                    if (
-                        client.username ===
-                        targetName
-                    ) {
-                        target = client;
-                        break;
+                            false
                     }
-                }
-
-                if (!target) {
-                    send(ws, {
-                        type: "error",
-                        message:
-                            "That user is not online."
-                    });
-
-                    return;
-                }
-
-                send(target, {
-                    type: "kicked",
-
-                    message:
-                        "You were kicked from the room by the owner."
-                });
-
-                broadcast(
-                    ws.room,
-                    {
-                        type: "system",
-
-                        message:
-                            `${target.username} was kicked from the room.`
-                    },
-                    target
                 );
 
-                room.users.delete(target);
+                if (ws.username) {
 
-                try {
-                    target.close();
-                } catch {}
+                    broadcast(
+                        ws.room,
+                        {
+                            type:
+                                "system",
 
-                updateUsers(ws.room);
-
-                return;
-            }
-
-            /* =================================================
-               CHANGE PASSWORD
-            ================================================= */
-
-            if (
-                data.type ===
-                "changePassword"
-            ) {
-                if (
-                    !ws.isOwner ||
-                    ws.username !==
-                        room.owner
-                ) {
-                    send(ws, {
-                        type: "error",
-                        message:
-                            "Only the room owner can change the password."
-                    });
-
-                    return;
-                }
-
-                let newPassword =
-                    typeof data.password ===
-                    "string"
-                        ? data.password
-                        : "";
-
-                newPassword =
-                    newPassword.slice(
-                        0,
-                        100
+                            message:
+                                `${ws.username} left the room.`
+                        }
                     );
-
-                await pool.query(
-                    `
-                    UPDATE rooms
-                    SET password = $1
-                    WHERE room = $2
-                    `,
-                    [
-                        hashPassword(
-                            newPassword
-                        ),
-                        ws.room
-                    ]
-                );
-
-                send(ws, {
-                    type:
-                        "passwordChanged",
-
-                    message:
-                        newPassword
-                            ? "Room password changed successfully."
-                            : "Room password removed."
-                });
-
-                broadcast(
-                    ws.room,
-                    {
-                        type: "system",
-
-                        message:
-                            "The room owner changed the room password."
-                    },
-                    ws
-                );
-
-                return;
-            }
-
-            /* =================================================
-               UNKNOWN REQUEST
-            ================================================= */
-
-            send(ws, {
-                type: "error",
-                message:
-                    "Unknown request."
-            });
-
-        } catch (error) {
-            console.error(
-                "WebSocket error:",
-                error
-            );
-
-            send(ws, {
-                type: "error",
-                message:
-                    "Server error."
-            });
-        }
-    });
-
-    /* =========================================================
-       DISCONNECT
-    ========================================================= */
-
-    ws.on("close", () => {
-        if (!ws.room) {
-            return;
-        }
-
-        const room =
-            rooms.get(ws.room);
-
-        if (!room) {
-            return;
-        }
-
-        room.users.delete(ws);
-
-        broadcast(
-            ws.room,
-            {
-                type: "typing",
-
-                username:
-                    ws.username,
-
-                typing: false
-            }
-        );
-
-        if (ws.username) {
-            broadcast(
-                ws.room,
-                {
-                    type: "system",
-
-                    message:
-                        `${ws.username} left the room.`
                 }
-            );
-        }
 
-        updateUsers(ws.room);
+                updateUsers(
+                    ws.room
+                );
 
-        if (room.users.size === 0) {
-            rooms.delete(ws.room);
-        }
-    });
+                if (
+                    room.users.size === 0
+                ) {
 
-    ws.on("error", error => {
-        console.error(
-            "WebSocket connection error:",
-            error.message
+                    rooms.delete(
+                        ws.room
+                    );
+                }
+            }
         );
-    });
-});
+
+        ws.on(
+            "error",
+            error => {
+
+                console.error(
+                    "WebSocket connection error:",
+                    error.message
+                );
+            }
+        );
+    }
+);
 
 /* =========================================================
-   START SERVER
+   START
 ========================================================= */
 
 async function start() {
+
     try {
+
         await setupDatabase();
 
         server.listen(
             PORT,
             "0.0.0.0",
             () => {
+
                 console.log(
                     `Chat server running on port ${PORT}`
                 );
             }
         );
+
     } catch (error) {
+
         console.error(
             "Failed to start server:",
             error
