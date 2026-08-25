@@ -59,7 +59,7 @@ const wss = new WebSocket.Server({
 const rooms = new Map();
 
 /* =========================================================
-   DATABASE SETUP / MIGRATION
+   DATABASE SETUP
 ========================================================= */
 
 async function setupDatabase() {
@@ -76,6 +76,7 @@ async function setupDatabase() {
             room TEXT UNIQUE NOT NULL,
             password TEXT DEFAULT '',
             owner TEXT DEFAULT '',
+            locked BOOLEAN DEFAULT FALSE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     `);
@@ -93,6 +94,11 @@ async function setupDatabase() {
     await pool.query(`
         ALTER TABLE rooms
         ADD COLUMN IF NOT EXISTS owner TEXT DEFAULT ''
+    `);
+
+    await pool.query(`
+        ALTER TABLE rooms
+        ADD COLUMN IF NOT EXISTS locked BOOLEAN DEFAULT FALSE
     `);
 
     await pool.query(`
@@ -174,12 +180,9 @@ async function setupDatabase() {
         )
     `);
 
-    /*
-       Fix the owner of your existing
-       JJCE room.
-
-       This does NOT delete messages.
-    */
+    /* =========================
+       JJCE OWNER FIX
+    ========================= */
 
     await pool.query(`
         UPDATE rooms
@@ -294,7 +297,8 @@ async function getRoom(roomName) {
             SELECT
                 room,
                 password,
-                owner
+                owner,
+                locked
             FROM rooms
             WHERE room = $1
             `,
@@ -323,14 +327,16 @@ async function createRoom(
                 (
                     room,
                     password,
-                    owner
+                    owner,
+                    locked
                 )
             VALUES
-                ($1, $2, $3)
+                ($1, $2, $3, FALSE)
             RETURNING
                 room,
                 password,
-                owner
+                owner,
+                locked
             `,
             [
                 roomName,
@@ -503,9 +509,7 @@ async function joinRoom(
 
     else {
 
-        /*
-           Make Justin the owner of JJCE.
-        */
+        /* Keep JJCE owned by Justin */
 
         if (
             roomName === "JJCE"
@@ -514,9 +518,7 @@ async function joinRoom(
             await pool.query(
                 `
                 UPDATE rooms
-
                 SET owner = $1
-
                 WHERE room = $2
                 `,
                 [
@@ -527,6 +529,25 @@ async function joinRoom(
 
             databaseRoom.owner =
                 "Justin";
+        }
+
+        /* Locked rooms reject new users */
+
+        if (
+            databaseRoom.locked &&
+            databaseRoom.owner !== username
+        ) {
+
+            send(
+                ws,
+                {
+                    type: "roomLocked",
+                    message:
+                        "This room is currently locked by the owner."
+                }
+            );
+
+            return false;
         }
 
         const suppliedPassword =
@@ -600,6 +621,11 @@ async function joinRoom(
                 owner:
                     databaseRoom.owner,
 
+                locked:
+                    Boolean(
+                        databaseRoom.locked
+                    ),
+
                 users:
                     new Set()
             }
@@ -611,6 +637,9 @@ async function joinRoom(
 
     room.owner =
         databaseRoom.owner;
+
+    room.locked =
+        Boolean(databaseRoom.locked);
 
     ws.room =
         roomName;
@@ -638,6 +667,9 @@ async function joinRoom(
 
             owner:
                 room.owner,
+
+            locked:
+                room.locked,
 
             isOwner:
                 ws.isOwner
@@ -871,10 +903,8 @@ wss.on(
                                         message,
                                         reply_to
                                     )
-
                                 VALUES
                                     ($1, $2, $3, $4)
-
                                 RETURNING
                                     id,
                                     time
@@ -956,17 +986,14 @@ wss.on(
                             await pool.query(
                                 `
                                 UPDATE messages
-
                                 SET
                                     message = $1,
                                     edited = TRUE
-
                                 WHERE
                                     id = $2
                                     AND room = $3
                                     AND username = $4
                                     AND deleted = FALSE
-
                                 RETURNING id
                                 `,
                                 [
@@ -1040,18 +1067,15 @@ wss.on(
                             await pool.query(
                                 `
                                 UPDATE messages
-
                                 SET
                                     deleted = TRUE,
                                     message =
                                         '[message deleted]'
-
                                 WHERE
                                     id = $1
                                     AND room = $2
                                     AND username = $3
                                     AND deleted = FALSE
-
                                 RETURNING id
                                 `,
                                 [
@@ -1139,9 +1163,7 @@ wss.on(
                             await pool.query(
                                 `
                                 SELECT id
-
                                 FROM messages
-
                                 WHERE
                                     id = $1
                                     AND room = $2
@@ -1157,7 +1179,6 @@ wss.on(
                             messageResult.rows
                                 .length === 0
                         ) {
-
                             return;
                         }
 
@@ -1165,9 +1186,7 @@ wss.on(
                             await pool.query(
                                 `
                                 SELECT 1
-
                                 FROM reactions
-
                                 WHERE
                                     message_id = $1
                                     AND username = $2
@@ -1187,7 +1206,6 @@ wss.on(
                             await pool.query(
                                 `
                                 DELETE FROM reactions
-
                                 WHERE
                                     message_id = $1
                                     AND username = $2
@@ -1210,10 +1228,8 @@ wss.on(
                                         username,
                                         reaction
                                     )
-
                                 VALUES
                                     ($1, $2, $3)
-
                                 ON CONFLICT DO NOTHING
                                 `,
                                 [
@@ -1315,7 +1331,6 @@ wss.on(
                             targetName ===
                                 ws.username
                         ) {
-
                             return;
                         }
 
@@ -1437,10 +1452,8 @@ wss.on(
                         await pool.query(
                             `
                             UPDATE rooms
-
                             SET
                                 password = $1
-
                             WHERE
                                 room = $2
                             `,
@@ -1475,6 +1488,466 @@ wss.on(
                                     "The room owner changed the room password."
                             },
                             ws
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       RENAME ROOM
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "renameRoom"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !== room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can rename the room."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const newRoomName =
+                            cleanText(
+                                data.newName,
+                                100
+                            );
+
+                        if (!newRoomName) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Enter a room name."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        if (
+                            newRoomName ===
+                            ws.room
+                        ) {
+
+                            return;
+                        }
+
+                        const existing =
+                            await getRoom(
+                                newRoomName
+                            );
+
+                        if (existing) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "That room name is already being used."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const oldRoomName =
+                            ws.room;
+
+                        /* Update database */
+
+                        await pool.query(
+                            `
+                            UPDATE rooms
+                            SET room = $1
+                            WHERE room = $2
+                            `,
+                            [
+                                newRoomName,
+                                oldRoomName
+                            ]
+                        );
+
+                        await pool.query(
+                            `
+                            UPDATE messages
+                            SET room = $1
+                            WHERE room = $2
+                            `,
+                            [
+                                newRoomName,
+                                oldRoomName
+                            ]
+                        );
+
+                        /* Move memory room */
+
+                        rooms.delete(
+                            oldRoomName
+                        );
+
+                        rooms.set(
+                            newRoomName,
+                            room
+                        );
+
+                        /* Update every connected client */
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            client.room =
+                                newRoomName;
+
+                            send(
+                                client,
+                                {
+                                    type:
+                                        "roomRenamed",
+
+                                    oldName:
+                                        oldRoomName,
+
+                                    newName:
+                                        newRoomName
+                                }
+                            );
+                        }
+
+                        broadcast(
+                            newRoomName,
+                            {
+                                type:
+                                    "system",
+
+                                message:
+                                    `The room was renamed to "${newRoomName}".`
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       TRANSFER OWNER
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "transferOwner"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !== room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can transfer ownership."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const targetName =
+                            cleanText(
+                                data.username,
+                                30
+                            );
+
+                        if (!targetName) {
+                            return;
+                        }
+
+                        let target =
+                            null;
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            if (
+                                client.username ===
+                                targetName
+                            ) {
+
+                                target =
+                                    client;
+
+                                break;
+                            }
+                        }
+
+                        if (!target) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "The new owner must be online."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        if (
+                            target === ws
+                        ) {
+                            return;
+                        }
+
+                        const oldOwner =
+                            room.owner;
+
+                        room.owner =
+                            target.username;
+
+                        await pool.query(
+                            `
+                            UPDATE rooms
+                            SET owner = $1
+                            WHERE room = $2
+                            `,
+                            [
+                                target.username,
+                                ws.room
+                            ]
+                        );
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            client.isOwner =
+                                client.username
+                                    .toLowerCase() ===
+                                room.owner.toLowerCase();
+
+                            send(
+                                client,
+                                {
+                                    type:
+                                        "owner",
+
+                                    owner:
+                                        room.owner,
+
+                                    isOwner:
+                                        client.isOwner
+                                }
+                            );
+                        }
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "system",
+
+                                message:
+                                    `${oldOwner} transferred ownership to ${target.username}.`
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       LOCK / UNLOCK ROOM
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "toggleLock"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !== room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can lock the room."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        room.locked =
+                            !room.locked;
+
+                        await pool.query(
+                            `
+                            UPDATE rooms
+                            SET locked = $1
+                            WHERE room = $2
+                            `,
+                            [
+                                room.locked,
+                                ws.room
+                            ]
+                        );
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "roomLockChanged",
+
+                                locked:
+                                    room.locked
+                            }
+                        );
+
+                        broadcast(
+                            ws.room,
+                            {
+                                type:
+                                    "system",
+
+                                message:
+                                    room.locked
+                                        ? "The room has been locked. New users cannot join."
+                                        : "The room has been unlocked."
+                            }
+                        );
+
+                        return;
+                    }
+
+                    /* =========================================
+                       DELETE ROOM
+                    ========================================= */
+
+                    if (
+                        data.type ===
+                        "deleteRoom"
+                    ) {
+
+                        if (
+                            !ws.isOwner ||
+                            ws.username !== room.owner
+                        ) {
+
+                            send(
+                                ws,
+                                {
+                                    type:
+                                        "error",
+
+                                    message:
+                                        "Only the room owner can delete the room."
+                                }
+                            );
+
+                            return;
+                        }
+
+                        const roomName =
+                            ws.room;
+
+                        /* Delete reactions */
+
+                        await pool.query(
+                            `
+                            DELETE FROM reactions
+                            WHERE message_id IN (
+                                SELECT id
+                                FROM messages
+                                WHERE room = $1
+                            )
+                            `,
+                            [roomName]
+                        );
+
+                        /* Delete messages */
+
+                        await pool.query(
+                            `
+                            DELETE FROM messages
+                            WHERE room = $1
+                            `,
+                            [roomName]
+                        );
+
+                        /* Delete room */
+
+                        await pool.query(
+                            `
+                            DELETE FROM rooms
+                            WHERE room = $1
+                            `,
+                            [roomName]
+                        );
+
+                        /* Tell everyone */
+
+                        for (
+                            const client
+                            of room.users
+                        ) {
+
+                            send(
+                                client,
+                                {
+                                    type:
+                                        "roomDeleted",
+
+                                    message:
+                                        "This room was deleted by the owner."
+                                }
+                            );
+
+                            try {
+                                client.close();
+                            } catch {}
+                        }
+
+                        rooms.delete(
+                            roomName
                         );
 
                         return;
