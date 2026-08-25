@@ -11,12 +11,22 @@ const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 10000;
 
+
+/* =========================
+   DATABASE
+========================= */
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false
     }
 });
+
+
+/* =========================
+   WEBSITE
+========================= */
 
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -28,7 +38,7 @@ app.use((req, res) => {
 
 
 /* =========================
-   DATABASE
+   DATABASE SETUP
 ========================= */
 
 async function setupDatabase() {
@@ -39,9 +49,23 @@ async function setupDatabase() {
             room TEXT NOT NULL,
             username TEXT NOT NULL,
             message TEXT NOT NULL,
+            reply_to INTEGER,
             created_at TIMESTAMPTZ DEFAULT NOW()
         )
     `);
+
+
+    /*
+       If the messages table already existed
+       before reply_to was added, this makes sure
+       the column exists.
+    */
+
+    await pool.query(`
+        ALTER TABLE messages
+        ADD COLUMN IF NOT EXISTS reply_to INTEGER
+    `);
+
 
     await pool.query(`
         CREATE TABLE IF NOT EXISTS rooms (
@@ -49,6 +73,23 @@ async function setupDatabase() {
             password_hash TEXT
         )
     `);
+
+
+    /*
+       One reaction per person per message.
+    */
+
+    await pool.query(`
+        CREATE TABLE IF NOT EXISTS reactions (
+            id SERIAL PRIMARY KEY,
+            message_id INTEGER NOT NULL,
+            username TEXT NOT NULL,
+            reaction TEXT NOT NULL,
+
+            UNIQUE(message_id, username)
+        )
+    `);
+
 
     console.log("Database ready.");
 }
@@ -108,16 +149,18 @@ function updateOnlineUsers(room) {
         return;
     }
 
-    const names = getOnlineUsers(room);
-
     broadcast(room, {
         type: "users",
-        count: names.length,
-        users: names
+        count: users.size,
+        users: getOnlineUsers(room)
     });
 
 }
 
+
+/* =========================
+   PASSWORD HASH
+========================= */
 
 function hashPassword(password) {
 
@@ -126,6 +169,54 @@ function hashPassword(password) {
         .update(password)
         .digest("hex");
 
+}
+
+
+/* =========================
+   VALID REACTIONS
+========================= */
+
+const allowedReactions = [
+    "👍",
+    "❤️",
+    "😂",
+    "😮",
+    "😢",
+    "😡"
+];
+
+
+/* =========================
+   GET REACTIONS
+========================= */
+
+async function getReactions(messageId) {
+
+    const result = await pool.query(
+        `
+        SELECT
+            reaction,
+            COUNT(*)::INTEGER AS count
+        FROM reactions
+        WHERE message_id = $1
+        GROUP BY reaction
+        `,
+        [messageId]
+    );
+
+
+    const reactions = {};
+
+
+    for (const row of result.rows) {
+
+        reactions[row.reaction] =
+            row.count;
+
+    }
+
+
+    return reactions;
 }
 
 
@@ -143,15 +234,27 @@ wss.on("connection", (ws) => {
 
         let data;
 
+
         try {
-            data = JSON.parse(raw.toString());
+
+            data =
+                JSON.parse(
+                    raw.toString()
+                );
+
         } catch {
+
+            send(ws, {
+                type: "error",
+                message: "Invalid request."
+            });
+
             return;
         }
 
 
         /* =========================
-           JOIN
+           JOIN ROOM
         ========================= */
 
         if (data.type === "join") {
@@ -161,29 +264,35 @@ wss.on("connection", (ws) => {
                     .trim()
                     .slice(0, 100);
 
+
             const username =
                 String(data.username || "Anonymous")
                     .trim()
                     .slice(0, 30);
+
 
             const password =
                 String(data.password || "");
 
 
             if (!room) {
+
                 send(ws, {
                     type: "error",
                     message: "Invalid room."
                 });
+
                 return;
             }
 
 
             if (!username) {
+
                 send(ws, {
                     type: "error",
                     message: "Please enter a name."
                 });
+
                 return;
             }
 
@@ -201,6 +310,10 @@ wss.on("connection", (ws) => {
                     );
 
 
+                /*
+                   Create room if it doesn't exist.
+                */
+
                 if (result.rows.length === 0) {
 
                     const passwordHash =
@@ -208,24 +321,34 @@ wss.on("connection", (ws) => {
                             ? hashPassword(password)
                             : null;
 
+
                     await pool.query(
                         `
                         INSERT INTO rooms
                         (room, password_hash)
                         VALUES ($1, $2)
                         `,
-                        [room, passwordHash]
+                        [
+                            room,
+                            passwordHash
+                        ]
                     );
 
                 } else {
 
+                    /*
+                       Existing room.
+                    */
+
                     const savedHash =
                         result.rows[0].password_hash;
+
 
                     if (savedHash) {
 
                         const suppliedHash =
                             hashPassword(password);
+
 
                         if (
                             suppliedHash !==
@@ -240,7 +363,9 @@ wss.on("connection", (ws) => {
 
                             return;
                         }
+
                     }
+
                 }
 
 
@@ -249,7 +374,10 @@ wss.on("connection", (ws) => {
 
 
                 if (!rooms.has(room)) {
-                    rooms.set(room, new Set());
+                    rooms.set(
+                        room,
+                        new Set()
+                    );
                 }
 
 
@@ -270,7 +398,7 @@ wss.on("connection", (ws) => {
 
 
                 /* =========================
-                   LOAD HISTORY
+                   LOAD MESSAGE HISTORY
                 ========================= */
 
                 const history =
@@ -280,6 +408,7 @@ wss.on("connection", (ws) => {
                             id,
                             username,
                             message,
+                            reply_to,
                             created_at
                         FROM messages
                         WHERE room = $1
@@ -292,12 +421,20 @@ wss.on("connection", (ws) => {
 
                 for (const msg of history.rows) {
 
+                    const reactions =
+                        await getReactions(
+                            msg.id
+                        );
+
+
                     send(ws, {
                         type: "message",
                         id: msg.id,
                         username: msg.username,
                         message: msg.message,
-                        time: msg.created_at
+                        replyTo: msg.reply_to,
+                        time: msg.created_at,
+                        reactions: reactions
                     });
 
                 }
@@ -312,13 +449,13 @@ wss.on("connection", (ws) => {
 
                 updateOnlineUsers(room);
 
-
             } catch (error) {
 
                 console.error(
                     "Join error:",
                     error
                 );
+
 
                 send(ws, {
                     type: "error",
@@ -327,6 +464,7 @@ wss.on("connection", (ws) => {
                 });
 
             }
+
 
             return;
         }
@@ -338,7 +476,10 @@ wss.on("connection", (ws) => {
 
         if (data.type === "typing") {
 
-            if (!currentRoom || !currentUser) {
+            if (
+                !currentRoom ||
+                !currentUser
+            ) {
                 return;
             }
 
@@ -359,24 +500,29 @@ wss.on("connection", (ws) => {
                     send(user.ws, {
                         type: "typing",
                         username: currentUser,
-                        typing: Boolean(data.typing)
+                        typing:
+                            Boolean(data.typing)
                     });
 
                 }
 
             }
 
+
             return;
         }
 
 
         /* =========================
-           MESSAGE
+           SEND MESSAGE
         ========================= */
 
         if (data.type === "message") {
 
-            if (!currentRoom || !currentUser) {
+            if (
+                !currentRoom ||
+                !currentUser
+            ) {
                 return;
             }
 
@@ -392,25 +538,84 @@ wss.on("connection", (ws) => {
             }
 
 
+            let replyTo = null;
+
+
+            if (
+                data.replyTo !== null &&
+                data.replyTo !== undefined
+            ) {
+
+                const number =
+                    Number(data.replyTo);
+
+
+                if (
+                    Number.isInteger(number) &&
+                    number > 0
+                ) {
+
+                    /*
+                       Make sure the replied-to
+                       message belongs to this room.
+                    */
+
+                    const replyCheck =
+                        await pool.query(
+                            `
+                            SELECT id
+                            FROM messages
+                            WHERE id = $1
+                            AND room = $2
+                            `,
+                            [
+                                number,
+                                currentRoom
+                            ]
+                        );
+
+
+                    if (
+                        replyCheck.rows.length > 0
+                    ) {
+
+                        replyTo = number;
+
+                    }
+
+                }
+
+            }
+
+
             try {
 
                 const result =
                     await pool.query(
                         `
                         INSERT INTO messages
-                        (room, username, message)
-                        VALUES ($1, $2, $3)
-                        RETURNING id, created_at
+                        (
+                            room,
+                            username,
+                            message,
+                            reply_to
+                        )
+                        VALUES ($1, $2, $3, $4)
+                        RETURNING
+                            id,
+                            created_at
                         `,
                         [
                             currentRoom,
                             currentUser,
-                            message
+                            message,
+                            replyTo
                         ]
                     );
 
 
-                const saved = result.rows[0];
+                const saved =
+                    result.rows[0];
 
 
                 broadcast(currentRoom, {
@@ -418,7 +623,9 @@ wss.on("connection", (ws) => {
                     id: saved.id,
                     username: currentUser,
                     message: message,
-                    time: saved.created_at
+                    replyTo: replyTo,
+                    time: saved.created_at,
+                    reactions: {}
                 });
 
 
@@ -431,23 +638,28 @@ wss.on("connection", (ws) => {
 
             }
 
+
             return;
         }
 
 
         /* =========================
-           EDIT
+           EDIT MESSAGE
         ========================= */
 
         if (data.type === "edit") {
 
-            if (!currentRoom || !currentUser) {
+            if (
+                !currentRoom ||
+                !currentUser
+            ) {
                 return;
             }
 
 
             const messageId =
                 Number(data.id);
+
 
             const newMessage =
                 String(data.message || "")
@@ -511,17 +723,21 @@ wss.on("connection", (ws) => {
 
             }
 
+
             return;
         }
 
 
         /* =========================
-           DELETE
+           DELETE MESSAGE
         ========================= */
 
         if (data.type === "delete") {
 
-            if (!currentRoom || !currentUser) {
+            if (
+                !currentRoom ||
+                !currentUser
+            ) {
                 return;
             }
 
@@ -565,6 +781,20 @@ wss.on("connection", (ws) => {
                 }
 
 
+                /*
+                   Delete reactions belonging
+                   to the deleted message.
+                */
+
+                await pool.query(
+                    `
+                    DELETE FROM reactions
+                    WHERE message_id = $1
+                    `,
+                    [messageId]
+                );
+
+
                 broadcast(currentRoom, {
                     type: "messageDeleted",
                     id: messageId
@@ -579,6 +809,197 @@ wss.on("connection", (ws) => {
                 );
 
             }
+
+
+            return;
+        }
+
+
+        /* =========================
+           REACTION
+        ========================= */
+
+        if (data.type === "reaction") {
+
+            if (
+                !currentRoom ||
+                !currentUser
+            ) {
+                return;
+            }
+
+
+            const messageId =
+                Number(data.id);
+
+
+            const reaction =
+                String(data.reaction || "");
+
+
+            if (
+                !Number.isInteger(messageId) ||
+                !allowedReactions.includes(
+                    reaction
+                )
+            ) {
+                return;
+            }
+
+
+            try {
+
+                /*
+                   Make sure message belongs
+                   to current room.
+                */
+
+                const messageCheck =
+                    await pool.query(
+                        `
+                        SELECT id
+                        FROM messages
+                        WHERE id = $1
+                        AND room = $2
+                        `,
+                        [
+                            messageId,
+                            currentRoom
+                        ]
+                    );
+
+
+                if (
+                    messageCheck.rows.length === 0
+                ) {
+                    return;
+                }
+
+
+                /*
+                   Check the user's current
+                   reaction.
+                */
+
+                const existing =
+                    await pool.query(
+                        `
+                        SELECT id, reaction
+                        FROM reactions
+                        WHERE message_id = $1
+                        AND username = $2
+                        `,
+                        [
+                            messageId,
+                            currentUser
+                        ]
+                    );
+
+
+                if (
+                    existing.rows.length > 0
+                ) {
+
+                    const oldReaction =
+                        existing.rows[0].reaction;
+
+
+                    /*
+                       Clicking the same reaction
+                       removes it.
+                    */
+
+                    if (
+                        oldReaction === reaction
+                    ) {
+
+                        await pool.query(
+                            `
+                            DELETE FROM reactions
+                            WHERE message_id = $1
+                            AND username = $2
+                            `,
+                            [
+                                messageId,
+                                currentUser
+                            ]
+                        );
+
+                    } else {
+
+                        /*
+                           Change reaction.
+                        */
+
+                        await pool.query(
+                            `
+                            UPDATE reactions
+                            SET reaction = $1
+                            WHERE message_id = $2
+                            AND username = $3
+                            `,
+                            [
+                                reaction,
+                                messageId,
+                                currentUser
+                            ]
+                        );
+
+                    }
+
+                } else {
+
+                    /*
+                       Add new reaction.
+                    */
+
+                    await pool.query(
+                        `
+                        INSERT INTO reactions
+                        (
+                            message_id,
+                            username,
+                            reaction
+                        )
+                        VALUES ($1, $2, $3)
+                        `,
+                        [
+                            messageId,
+                            currentUser,
+                            reaction
+                        ]
+                    );
+
+                }
+
+
+                const reactions =
+                    await getReactions(
+                        messageId
+                    );
+
+
+                /*
+                   Tell everybody in the room
+                   about the new reaction counts.
+                */
+
+                broadcast(currentRoom, {
+                    type: "reactionUpdate",
+                    id: messageId,
+                    reactions: reactions
+                });
+
+
+            } catch (error) {
+
+                console.error(
+                    "Reaction error:",
+                    error
+                );
+
+            }
+
 
             return;
         }
@@ -609,11 +1030,25 @@ wss.on("connection", (ws) => {
         for (const user of users) {
 
             if (user.ws === ws) {
+
                 users.delete(user);
+
                 break;
             }
 
         }
+
+
+        /*
+           Tell remaining users that
+           this person stopped typing.
+        */
+
+        broadcast(currentRoom, {
+            type: "typing",
+            username: currentUser,
+            typing: false
+        });
 
 
         broadcast(currentRoom, {
@@ -639,7 +1074,7 @@ wss.on("connection", (ws) => {
 
 
 /* =========================
-   START
+   START SERVER
 ========================= */
 
 async function startServer() {
@@ -647,6 +1082,7 @@ async function startServer() {
     try {
 
         await setupDatabase();
+
 
         server.listen(
             PORT,
@@ -660,6 +1096,7 @@ async function startServer() {
             }
         );
 
+
     } catch (error) {
 
         console.error(
@@ -667,8 +1104,8 @@ async function startServer() {
             error
         );
 
-        process.exit(1);
 
+        process.exit(1);
     }
 
 }
