@@ -10,7 +10,6 @@ const wss = new WebSocket.Server({ server });
 
 const PORT = process.env.PORT || 3000;
 
-// Connect to Render PostgreSQL
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -18,8 +17,6 @@ const pool = new Pool({
     }
 });
 
-
-// Serve website
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res) => {
@@ -29,7 +26,6 @@ app.use((req, res) => {
 });
 
 
-// Create messages table
 async function setupDatabase() {
 
     await pool.query(`
@@ -46,7 +42,6 @@ async function setupDatabase() {
 }
 
 
-// Store connected users
 const rooms = new Map();
 
 
@@ -89,7 +84,6 @@ function broadcastExcept(room, data, exceptWs) {
 }
 
 
-// WebSocket connection
 wss.on("connection", (ws) => {
 
     let currentRoom = null;
@@ -102,9 +96,7 @@ wss.on("connection", (ws) => {
 
         try {
 
-            data = JSON.parse(
-                raw.toString()
-            );
+            data = JSON.parse(raw.toString());
 
         } catch {
 
@@ -113,7 +105,7 @@ wss.on("connection", (ws) => {
         }
 
 
-        // JOIN ROOM
+        // JOIN
         if (data.type === "join") {
 
             const room =
@@ -153,7 +145,6 @@ wss.on("connection", (ws) => {
             });
 
 
-            // Tell user they joined
             send(ws, {
                 type: "joined",
                 room,
@@ -168,6 +159,7 @@ wss.on("connection", (ws) => {
                     await pool.query(
                         `
                         SELECT
+                            id,
                             username,
                             message,
                             created_at
@@ -188,6 +180,7 @@ wss.on("connection", (ws) => {
 
                     send(ws, {
                         type: "message",
+                        id: msg.id,
                         username: msg.username,
                         message: msg.message,
                         time: msg.created_at
@@ -205,7 +198,6 @@ wss.on("connection", (ws) => {
             }
 
 
-            // Tell everyone someone joined
             broadcastExcept(
                 room,
                 {
@@ -248,14 +240,13 @@ wss.on("connection", (ws) => {
 
             try {
 
-                // SAVE MESSAGE
                 const result =
                     await pool.query(
                         `
                         INSERT INTO messages
                         (room, username, message)
                         VALUES ($1, $2, $3)
-                        RETURNING created_at
+                        RETURNING id, created_at
                         `,
                         [
                             currentRoom,
@@ -265,18 +256,18 @@ wss.on("connection", (ws) => {
                     );
 
 
-                const time =
-                    result.rows[0].created_at;
+                const saved =
+                    result.rows[0];
 
 
-                // Send message to everyone
                 broadcast(
                     currentRoom,
                     {
                         type: "message",
+                        id: saved.id,
                         username: currentUser,
                         message: message,
-                        time: time
+                        time: saved.created_at
                     }
                 );
 
@@ -288,7 +279,6 @@ wss.on("connection", (ws) => {
                     error
                 );
 
-
                 send(ws, {
                     type: "error",
                     message:
@@ -297,12 +287,164 @@ wss.on("connection", (ws) => {
 
             }
 
+            return;
+        }
+
+
+        // EDIT MESSAGE
+        if (data.type === "edit") {
+
+            if (!currentRoom || !currentUser) {
+                return;
+            }
+
+
+            const messageId =
+                Number(data.id);
+
+
+            const newMessage =
+                String(data.message || "")
+                .trim()
+                .slice(0, 1000);
+
+
+            if (
+                !Number.isInteger(messageId) ||
+                !newMessage
+            ) {
+                return;
+            }
+
+
+            try {
+
+                const result =
+                    await pool.query(
+                        `
+                        UPDATE messages
+                        SET message = $1
+                        WHERE id = $2
+                        AND room = $3
+                        AND username = $4
+                        RETURNING id, message
+                        `,
+                        [
+                            newMessage,
+                            messageId,
+                            currentRoom,
+                            currentUser
+                        ]
+                    );
+
+
+                if (result.rowCount === 0) {
+
+                    send(ws, {
+                        type: "error",
+                        message:
+                            "You can only edit your own messages."
+                    });
+
+                    return;
+                }
+
+
+                broadcast(
+                    currentRoom,
+                    {
+                        type: "messageEdited",
+                        id: messageId,
+                        message: newMessage
+                    }
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Could not edit message:",
+                    error
+                );
+
+            }
+
+            return;
+        }
+
+
+        // DELETE MESSAGE
+        if (data.type === "delete") {
+
+            if (!currentRoom || !currentUser) {
+                return;
+            }
+
+
+            const messageId =
+                Number(data.id);
+
+
+            if (!Number.isInteger(messageId)) {
+                return;
+            }
+
+
+            try {
+
+                const result =
+                    await pool.query(
+                        `
+                        DELETE FROM messages
+                        WHERE id = $1
+                        AND room = $2
+                        AND username = $3
+                        RETURNING id
+                        `,
+                        [
+                            messageId,
+                            currentRoom,
+                            currentUser
+                        ]
+                    );
+
+
+                if (result.rowCount === 0) {
+
+                    send(ws, {
+                        type: "error",
+                        message:
+                            "You can only delete your own messages."
+                    });
+
+                    return;
+                }
+
+
+                broadcast(
+                    currentRoom,
+                    {
+                        type: "messageDeleted",
+                        id: messageId
+                    }
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    "Could not delete message:",
+                    error
+                );
+
+            }
+
+            return;
         }
 
     });
 
 
-    // USER DISCONNECTS
     ws.on("close", () => {
 
         if (!currentRoom) {
@@ -362,7 +504,6 @@ wss.on("connection", (ws) => {
 });
 
 
-// Start server
 async function startServer() {
 
     try {
