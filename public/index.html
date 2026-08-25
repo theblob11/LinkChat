@@ -1,19 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>LinkChat</title>
 
 <style>
-
 * {
     box-sizing: border-box;
 }
@@ -25,7 +18,6 @@ body {
     color: white;
     height: 100vh;
 }
-
 
 /* LOGIN */
 
@@ -93,6 +85,9 @@ input:focus {
     cursor: pointer;
 }
 
+#joinButton:hover {
+    background: #2563eb;
+}
 
 /* CHAT */
 
@@ -101,7 +96,6 @@ input:focus {
     height: 100vh;
     flex-direction: column;
 }
-
 
 /* HEADER */
 
@@ -149,6 +143,9 @@ header {
     cursor: pointer;
 }
 
+#copyButton:hover {
+    background: #475569;
+}
 
 /* CHAT AREA */
 
@@ -157,7 +154,6 @@ header {
     display: flex;
     min-height: 0;
 }
-
 
 /* MESSAGES */
 
@@ -172,7 +168,8 @@ header {
     background: #1e293b;
     padding: 11px 14px;
     border-radius: 14px;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
+    position: relative;
 }
 
 .message.mine {
@@ -206,6 +203,28 @@ header {
     color: #bfdbfe;
 }
 
+/* REPLY PREVIEW */
+
+.reply-preview {
+    background: rgba(0, 0, 0, 0.18);
+    border-left: 3px solid #93c5fd;
+    padding: 7px 9px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.reply-name {
+    font-weight: bold;
+    margin-bottom: 3px;
+}
+
+.reply-text {
+    color: #cbd5e1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 /* ACTIONS */
 
@@ -213,6 +232,7 @@ header {
     display: flex;
     gap: 6px;
     margin-top: 8px;
+    flex-wrap: wrap;
 }
 
 .message-actions button {
@@ -221,8 +241,12 @@ header {
     padding: 5px 8px;
     font-size: 11px;
     color: white;
-    background: rgba(255,255,255,.15);
+    background: rgba(255, 255, 255, .15);
     cursor: pointer;
+}
+
+.message-actions button:hover {
+    background: rgba(255, 255, 255, .25);
 }
 
 .edited-label {
@@ -231,6 +255,56 @@ header {
     opacity: .8;
 }
 
+/* REACTIONS */
+
+.reactions {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.reaction-button {
+    border: 1px solid rgba(255,255,255,.18);
+    background: rgba(0,0,0,.15);
+    color: white;
+    border-radius: 14px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.reaction-button:hover {
+    background: rgba(255,255,255,.15);
+}
+
+.reaction-count {
+    font-size: 11px;
+    margin-left: 2px;
+}
+
+/* REACTION PICKER */
+
+.reaction-picker {
+    display: flex;
+    gap: 4px;
+    margin-top: 7px;
+    flex-wrap: wrap;
+}
+
+.reaction-picker button {
+    border: none;
+    background: #334155;
+    color: white;
+    border-radius: 7px;
+    padding: 5px 7px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.reaction-picker button:hover {
+    background: #475569;
+}
 
 /* SYSTEM */
 
@@ -240,7 +314,6 @@ header {
     font-size: 13px;
     margin: 12px;
 }
-
 
 /* ONLINE */
 
@@ -286,8 +359,7 @@ header {
     flex-shrink: 0;
 }
 
-
-/* TYPING INDICATOR */
+/* TYPING */
 
 #typingIndicator {
     min-height: 22px;
@@ -300,6 +372,46 @@ header {
     background: #1e293b;
 }
 
+/* REPLY BAR */
+
+#replyBar {
+    display: none;
+    background: #111827;
+    border-top: 1px solid #334155;
+    padding: 9px 15px;
+
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.reply-bar-text {
+    min-width: 0;
+    flex: 1;
+}
+
+.reply-bar-title {
+    font-size: 12px;
+    color: #60a5fa;
+    font-weight: bold;
+}
+
+.reply-bar-message {
+    color: #cbd5e1;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#cancelReply {
+    border: none;
+    background: #334155;
+    color: white;
+    border-radius: 7px;
+    padding: 6px 10px;
+    cursor: pointer;
+}
 
 /* COMPOSER */
 
@@ -333,7 +445,6 @@ header {
     opacity: .5;
 }
 
-
 /* MOBILE */
 
 @media (max-width: 700px) {
@@ -350,15 +461,19 @@ header {
         padding: 15px;
     }
 
-}
+    header {
+        padding: 0 12px;
+    }
 
+    .chat-title {
+        font-size: 17px;
+    }
+}
 </style>
 
 </head>
 
-
 <body>
-
 
 <!-- LOGIN -->
 
@@ -374,7 +489,6 @@ header {
             Create a room and share the link.
         </div>
 
-
         <label>Your name</label>
 
         <input
@@ -384,7 +498,6 @@ header {
             autocomplete="off"
         >
 
-
         <label>Room name</label>
 
         <input
@@ -393,7 +506,6 @@ header {
             placeholder="Example: Friends"
             autocomplete="off"
         >
-
 
         <label>Room password</label>
 
@@ -409,7 +521,6 @@ header {
             For a new room, the first password becomes the room password.
         </div>
 
-
         <button id="joinButton">
             Join Chat
         </button>
@@ -422,7 +533,6 @@ header {
 <!-- CHAT -->
 
 <div id="chat">
-
 
     <header>
 
@@ -440,7 +550,6 @@ header {
             </div>
 
         </div>
-
 
         <button id="copyButton">
             🔗 Copy Link
@@ -474,9 +583,31 @@ header {
     </div>
 
 
-    <!-- TYPING -->
-
     <div id="typingIndicator"></div>
+
+
+    <!-- REPLY BAR -->
+
+    <div id="replyBar">
+
+        <div class="reply-bar-text">
+
+            <div class="reply-bar-title">
+                ↩️ Replying to <span id="replyBarName"></span>
+            </div>
+
+            <div
+                class="reply-bar-message"
+                id="replyBarMessage"
+            ></div>
+
+        </div>
+
+        <button id="cancelReply">
+            ✕
+        </button>
+
+    </div>
 
 
     <!-- COMPOSER -->
@@ -505,8 +636,9 @@ header {
 
 <script>
 
-
-/* ELEMENTS */
+/* =========================
+   ELEMENTS
+========================= */
 
 const login =
     document.getElementById("login");
@@ -553,8 +685,22 @@ const onlineCount =
 const typingIndicator =
     document.getElementById("typingIndicator");
 
+const replyBar =
+    document.getElementById("replyBar");
 
-/* VARIABLES */
+const replyBarName =
+    document.getElementById("replyBarName");
+
+const replyBarMessage =
+    document.getElementById("replyBarMessage");
+
+const cancelReply =
+    document.getElementById("cancelReply");
+
+
+/* =========================
+   VARIABLES
+========================= */
 
 let socket = null;
 
@@ -568,8 +714,12 @@ let typingTimer = null;
 
 let currentlyTyping = new Set();
 
+let replyTo = null;
 
-/* ROOM FROM URL */
+
+/* =========================
+   URL ROOM
+========================= */
 
 const params =
     new URLSearchParams(
@@ -584,7 +734,9 @@ if (urlRoom) {
 }
 
 
-/* STATUS */
+/* =========================
+   STATUS
+========================= */
 
 function setStatus(type, text) {
 
@@ -593,11 +745,12 @@ function setStatus(type, text) {
 
     statusElement.textContent =
         text;
-
 }
 
 
-/* TIME */
+/* =========================
+   TIME
+========================= */
 
 function formatTime(time) {
 
@@ -605,9 +758,11 @@ function formatTime(time) {
         return "";
     }
 
-    const date = new Date(time);
+    const date =
+        new Date(time);
 
-    const now = new Date();
+    const now =
+        new Date();
 
     if (
         date.toDateString() ===
@@ -645,18 +800,21 @@ function formatTime(time) {
             }
         )
     );
-
 }
 
 
-/* ADD MESSAGE */
+/* =========================
+   ADD MESSAGE
+========================= */
 
 function addMessage(
     name,
     message,
     mine,
     time,
-    id
+    id,
+    replyToId,
+    reactions
 ) {
 
     const box =
@@ -673,6 +831,75 @@ function addMessage(
         String(id);
 
 
+    /* =========================
+       REPLY PREVIEW
+    ========================= */
+
+    if (replyToId) {
+
+        const repliedMessage =
+            document.querySelector(
+                `.message[data-id="${replyToId}"]`
+            );
+
+
+        if (repliedMessage) {
+
+            const repliedName =
+                repliedMessage
+                    .querySelector(".name")
+                    .textContent;
+
+            const repliedText =
+                repliedMessage
+                    .querySelector(".message-text")
+                    .textContent;
+
+
+            const preview =
+                document.createElement("div");
+
+            preview.className =
+                "reply-preview";
+
+
+            const previewName =
+                document.createElement("div");
+
+            previewName.className =
+                "reply-name";
+
+            previewName.textContent =
+                repliedName;
+
+
+            const previewText =
+                document.createElement("div");
+
+            previewText.className =
+                "reply-text";
+
+            previewText.textContent =
+                repliedText;
+
+
+            preview.appendChild(
+                previewName
+            );
+
+            preview.appendChild(
+                previewText
+            );
+
+            box.appendChild(preview);
+        }
+    }
+
+
+    /* =========================
+       NAME
+    ========================= */
+
     const nameElement =
         document.createElement("div");
 
@@ -683,6 +910,10 @@ function addMessage(
         name;
 
 
+    /* =========================
+       MESSAGE TEXT
+    ========================= */
+
     const messageElement =
         document.createElement("div");
 
@@ -692,6 +923,10 @@ function addMessage(
     messageElement.textContent =
         message;
 
+
+    /* =========================
+       TIME
+    ========================= */
 
     const timeElement =
         document.createElement("div");
@@ -704,20 +939,52 @@ function addMessage(
 
 
     box.appendChild(nameElement);
+
     box.appendChild(messageElement);
+
     box.appendChild(timeElement);
+
+
+    /* =========================
+       ACTIONS
+    ========================= */
+
+    const actions =
+        document.createElement("div");
+
+    actions.className =
+        "message-actions";
+
+
+    /* REPLY BUTTON */
+
+    const replyButton =
+        document.createElement("button");
+
+    replyButton.textContent =
+        "↩️ Reply";
+
+
+    replyButton.onclick =
+        function() {
+
+            startReply(
+                id,
+                name,
+                message
+            );
+
+        };
+
+
+    actions.appendChild(
+        replyButton
+    );
 
 
     /* EDIT / DELETE */
 
     if (mine) {
-
-        const actions =
-            document.createElement("div");
-
-        actions.className =
-            "message-actions";
-
 
         const editButton =
             document.createElement("button");
@@ -808,23 +1075,273 @@ function addMessage(
             };
 
 
-        actions.appendChild(editButton);
-        actions.appendChild(deleteButton);
+        actions.appendChild(
+            editButton
+        );
 
-        box.appendChild(actions);
+        actions.appendChild(
+            deleteButton
+        );
 
     }
+
+
+    box.appendChild(actions);
+
+
+    /* =========================
+       REACTIONS
+    ========================= */
+
+    const reactionArea =
+        document.createElement("div");
+
+    reactionArea.className =
+        "reactions";
+
+
+    renderReactions(
+        reactionArea,
+        reactions || {},
+        id
+    );
+
+
+    box.appendChild(
+        reactionArea
+    );
+
+
+    /* =========================
+       REACTION PICKER
+    ========================= */
+
+    const picker =
+        document.createElement("div");
+
+    picker.className =
+        "reaction-picker";
+
+
+    const reactionList = [
+        "👍",
+        "❤️",
+        "😂",
+        "😮",
+        "😢",
+        "😡"
+    ];
+
+
+    reactionList.forEach(
+        function(reaction) {
+
+            const button =
+                document.createElement("button");
+
+            button.textContent =
+                reaction;
+
+
+            button.onclick =
+                function() {
+
+                    sendReaction(
+                        id,
+                        reaction
+                    );
+
+                };
+
+
+            picker.appendChild(
+                button
+            );
+
+        }
+    );
+
+
+    box.appendChild(
+        picker
+    );
 
 
     messages.appendChild(box);
 
     messages.scrollTop =
         messages.scrollHeight;
-
 }
 
 
-/* SYSTEM MESSAGE */
+/* =========================
+   RENDER REACTIONS
+========================= */
+
+function renderReactions(
+    container,
+    reactions,
+    messageId
+) {
+
+    container.innerHTML = "";
+
+
+    const reactionList = [
+        "👍",
+        "❤️",
+        "😂",
+        "😮",
+        "😢",
+        "😡"
+    ];
+
+
+    reactionList.forEach(
+        function(reaction) {
+
+            const count =
+                Number(
+                    reactions[reaction] || 0
+                );
+
+
+            if (count <= 0) {
+                return;
+            }
+
+
+            const button =
+                document.createElement("button");
+
+            button.className =
+                "reaction-button";
+
+            button.textContent =
+                reaction;
+
+
+            const countElement =
+                document.createElement("span");
+
+            countElement.className =
+                "reaction-count";
+
+            countElement.textContent =
+                count;
+
+
+            button.appendChild(
+                countElement
+            );
+
+
+            button.onclick =
+                function() {
+
+                    sendReaction(
+                        messageId,
+                        reaction
+                    );
+
+                };
+
+
+            container.appendChild(
+                button
+            );
+
+        }
+    );
+}
+
+
+/* =========================
+   SEND REACTION
+========================= */
+
+function sendReaction(
+    messageId,
+    reaction
+) {
+
+    if (
+        !socket ||
+        socket.readyState !==
+        WebSocket.OPEN
+    ) {
+        return;
+    }
+
+
+    socket.send(
+        JSON.stringify({
+            type: "reaction",
+            id: Number(messageId),
+            reaction: reaction
+        })
+    );
+}
+
+
+/* =========================
+   START REPLY
+========================= */
+
+function startReply(
+    id,
+    name,
+    message
+) {
+
+    replyTo =
+        Number(id);
+
+
+    replyBarName.textContent =
+        name;
+
+
+    replyBarMessage.textContent =
+        message;
+
+
+    replyBar.style.display =
+        "flex";
+
+
+    messageInput.focus();
+}
+
+
+/* =========================
+   CANCEL REPLY
+========================= */
+
+function cancelReplyMode() {
+
+    replyTo = null;
+
+    replyBar.style.display =
+        "none";
+
+    replyBarName.textContent =
+        "";
+
+    replyBarMessage.textContent =
+        "";
+}
+
+
+cancelReply.addEventListener(
+    "click",
+    cancelReplyMode
+);
+
+
+/* =========================
+   SYSTEM MESSAGE
+========================= */
 
 function addSystemMessage(text) {
 
@@ -841,15 +1358,17 @@ function addSystemMessage(text) {
 
     messages.scrollTop =
         messages.scrollHeight;
-
 }
 
 
-/* ONLINE USERS */
+/* =========================
+   ONLINE USERS
+========================= */
 
 function updateOnlineUsers(users) {
 
     onlineUsers.innerHTML = "";
+
 
     onlineCount.textContent =
         users.length === 1
@@ -857,47 +1376,55 @@ function updateOnlineUsers(users) {
             : `${users.length} people online`;
 
 
-    users.forEach(function(name) {
+    users.forEach(
+        function(name) {
 
-        const user =
-            document.createElement("div");
+            const user =
+                document.createElement("div");
 
-        user.className =
-            "online-user";
-
-
-        const dot =
-            document.createElement("div");
-
-        dot.className =
-            "online-dot";
+            user.className =
+                "online-user";
 
 
-        const nameElement =
-            document.createElement("span");
+            const dot =
+                document.createElement("div");
 
-        nameElement.textContent =
-            name === username
-                ? name + " (you)"
-                : name;
+            dot.className =
+                "online-dot";
 
 
-        user.appendChild(dot);
-        user.appendChild(nameElement);
+            const nameElement =
+                document.createElement("span");
 
-        onlineUsers.appendChild(user);
+            nameElement.textContent =
+                name === username
+                    ? name + " (you)"
+                    : name;
 
-    });
 
+            user.appendChild(dot);
+
+            user.appendChild(
+                nameElement
+            );
+
+            onlineUsers.appendChild(user);
+
+        }
+    );
 }
 
 
-/* TYPING DISPLAY */
+/* =========================
+   TYPING
+========================= */
 
 function updateTypingIndicator() {
 
     const names =
-        Array.from(currentlyTyping);
+        Array.from(
+            currentlyTyping
+        );
 
 
     if (names.length === 0) {
@@ -929,26 +1456,12 @@ function updateTypingIndicator() {
 
     typingIndicator.textContent =
         `${names.length} people are typing...`;
-
 }
 
 
-/* COMPOSER */
-
-function setComposerEnabled(enabled) {
-
-    messageInput.disabled =
-        !enabled;
-
-    sendButton.disabled =
-        !enabled;
-
-}
-
-
-/* SEND TYPING STATUS */
-
-function sendTypingStatus(isTyping) {
+function sendTypingStatus(
+    isTyping
+) {
 
     if (
         !socket ||
@@ -965,11 +1478,28 @@ function sendTypingStatus(isTyping) {
             typing: isTyping
         })
     );
-
 }
 
 
-/* CONNECT */
+/* =========================
+   COMPOSER
+========================= */
+
+function setComposerEnabled(
+    enabled
+) {
+
+    messageInput.disabled =
+        !enabled;
+
+    sendButton.disabled =
+        !enabled;
+}
+
+
+/* =========================
+   CONNECT
+========================= */
 
 function connect() {
 
@@ -1012,7 +1542,6 @@ function connect() {
                     password: password
                 })
             );
-
         }
     );
 
@@ -1034,7 +1563,6 @@ function connect() {
             } catch {
 
                 return;
-
             }
 
 
@@ -1055,7 +1583,7 @@ function connect() {
             }
 
 
-            /* PASSWORD */
+            /* PASSWORD ERROR */
 
             if (
                 data.type ===
@@ -1065,6 +1593,7 @@ function connect() {
                 alert(
                     "Incorrect room password."
                 );
+
 
                 setComposerEnabled(false);
 
@@ -1076,9 +1605,11 @@ function connect() {
 
                 passwordInput.focus();
 
+
                 if (socket) {
                     socket.close();
                 }
+
 
                 return;
             }
@@ -1095,14 +1626,17 @@ function connect() {
                     data.message,
                     data.username === username,
                     data.time,
-                    data.id
+                    data.id,
+                    data.replyTo,
+                    data.reactions
                 );
+
 
                 return;
             }
 
 
-            /* EDIT */
+            /* MESSAGE EDITED */
 
             if (
                 data.type ===
@@ -1122,33 +1656,40 @@ function connect() {
                             ".message-text"
                         );
 
+
                     if (text) {
 
                         text.textContent =
                             data.message;
+
 
                         const label =
                             document.createElement(
                                 "span"
                             );
 
+
                         label.className =
                             "edited-label";
+
 
                         label.textContent =
                             "(edited)";
 
-                        text.appendChild(label);
+
+                        text.appendChild(
+                            label
+                        );
 
                     }
-
                 }
+
 
                 return;
             }
 
 
-            /* DELETE */
+            /* MESSAGE DELETED */
 
             if (
                 data.type ===
@@ -1160,9 +1701,49 @@ function connect() {
                         `.message[data-id="${data.id}"]`
                     );
 
+
                 if (element) {
                     element.remove();
                 }
+
+
+                return;
+            }
+
+
+            /* REACTION UPDATE */
+
+            if (
+                data.type ===
+                "reactionUpdate"
+            ) {
+
+                const element =
+                    document.querySelector(
+                        `.message[data-id="${data.id}"]`
+                    );
+
+
+                if (element) {
+
+                    const reactionArea =
+                        element.querySelector(
+                            ".reactions"
+                        );
+
+
+                    if (reactionArea) {
+
+                        renderReactions(
+                            reactionArea,
+                            data.reactions || {},
+                            data.id
+                        );
+
+                    }
+
+                }
+
 
                 return;
             }
@@ -1178,6 +1759,7 @@ function connect() {
                     data.message
                 );
 
+
                 return;
             }
 
@@ -1191,6 +1773,7 @@ function connect() {
                 updateOnlineUsers(
                     data.users || []
                 );
+
 
                 return;
             }
@@ -1219,6 +1802,7 @@ function connect() {
 
                 updateTypingIndicator();
 
+
                 return;
             }
 
@@ -1245,6 +1829,7 @@ function connect() {
 
             setComposerEnabled(false);
 
+
             setStatus(
                 "disconnected",
                 "🔴 Disconnected"
@@ -1252,11 +1837,12 @@ function connect() {
 
         }
     );
-
 }
 
 
-/* JOIN */
+/* =========================
+   JOIN
+========================= */
 
 function joinChat() {
 
@@ -1305,6 +1891,7 @@ function joinChat() {
     login.style.display =
         "none";
 
+
     chat.style.display =
         "flex";
 
@@ -1325,17 +1912,23 @@ function joinChat() {
     typingIndicator.textContent =
         "";
 
+
     currentlyTyping.clear();
+
+
+    cancelReplyMode();
 
 
     setComposerEnabled(false);
 
-    connect();
 
+    connect();
 }
 
 
-/* SEND MESSAGE */
+/* =========================
+   SEND MESSAGE
+========================= */
 
 function sendMessage() {
 
@@ -1353,7 +1946,6 @@ function sendMessage() {
         socket.readyState !==
         WebSocket.OPEN
     ) {
-
         return;
     }
 
@@ -1364,7 +1956,8 @@ function sendMessage() {
     socket.send(
         JSON.stringify({
             type: "message",
-            message: message
+            message: message,
+            replyTo: replyTo
         })
     );
 
@@ -1372,12 +1965,17 @@ function sendMessage() {
     messageInput.value =
         "";
 
-    messageInput.focus();
 
+    cancelReplyMode();
+
+
+    messageInput.focus();
 }
 
 
-/* BUTTONS */
+/* =========================
+   BUTTONS
+========================= */
 
 joinButton.addEventListener(
     "click",
@@ -1391,7 +1989,9 @@ sendButton.addEventListener(
 );
 
 
-/* ENTER TO JOIN */
+/* =========================
+   ENTER TO JOIN
+========================= */
 
 usernameInput.addEventListener(
     "keydown",
@@ -1400,7 +2000,6 @@ usernameInput.addEventListener(
         if (event.key === "Enter") {
             joinChat();
         }
-
     }
 );
 
@@ -1412,7 +2011,6 @@ roomInput.addEventListener(
         if (event.key === "Enter") {
             joinChat();
         }
-
     }
 );
 
@@ -1424,12 +2022,13 @@ passwordInput.addEventListener(
         if (event.key === "Enter") {
             joinChat();
         }
-
     }
 );
 
 
-/* TYPING */
+/* =========================
+   TYPING
+========================= */
 
 messageInput.addEventListener(
     "input",
@@ -1452,30 +2051,34 @@ messageInput.addEventListener(
                 },
                 1200
             );
-
     }
 );
 
 
-/* ENTER TO SEND */
+/* =========================
+   ENTER TO SEND
+========================= */
 
 messageInput.addEventListener(
     "keydown",
     function(event) {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter" &&
+            !event.shiftKey
+        ) {
 
             event.preventDefault();
 
             sendMessage();
-
         }
-
     }
 );
 
 
-/* COPY LINK */
+/* =========================
+   COPY LINK
+========================= */
 
 copyButton.addEventListener(
     "click",
@@ -1508,14 +2111,11 @@ copyButton.addEventListener(
             alert(
                 "Copy failed. Copy the URL manually."
             );
-
         }
-
     }
 );
 
 </script>
 
 </body>
-
 </html>
